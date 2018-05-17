@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="TextAppearance.Design.Hint" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textColor">?attr/colorControlActivated</item>
+    </style>
+
+    <style name="InputLabel" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:paddingLeft">@dimen/input_label_horizontal_spacing</item>
+        <item name="android:paddingRight">@dimen/input_label_horizontal_spacing</item>
+        <item name="android:textColor">?android:textColorHint</item>
+    </style>
+
+    <style name="Button.Important" parent="ThemeOverlay.AppCompat">
+        <item name="colorAccent">@color/colorRed</item>
+    </style>
+
+</resources>

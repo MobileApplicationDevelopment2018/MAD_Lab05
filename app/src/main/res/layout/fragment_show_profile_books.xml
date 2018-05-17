@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="16dp"
+    android:paddingEnd="8dp"
+    android:paddingStart="8dp"
+    android:paddingTop="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="48dp"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/sp_owned_books_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@string/number_zero"
+                android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                android:textColor="@color/colorTextAccent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:text="@string/owned_books"
+                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                android:textColor="@color/colorText" />
+
+        </LinearLayout>
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/sp_show_books"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/show_owned_book"
+            android:padding="12dp"
+            android:src="@drawable/ic_default_book_preview"
+            android:tint="@color/colorIcon"
+            android:visibility="invisible" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="8dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/sp_lent_books_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/number_zero"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                android:textColor="@color/colorTextAccent" />
+
+            <TextView
+                android:id="@+id/sp_lent_books_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/lent_books"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                android:textColor="@color/colorText" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="0.3dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/sp_borrowed_books_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/number_zero"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                android:textColor="@color/colorTextAccent" />
+
+            <TextView
+                android:id="@+id/sp_borrowed_books_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/borrowed_books"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                android:textColor="@color/colorText" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="0.3dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/sp_to_be_returned_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/number_zero"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                android:textColor="@color/colorTextAccent" />
+
+            <TextView
+                android:id="@+id/sp_to_be_returned_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/to_be_returned"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                android:textColor="@color/colorText" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

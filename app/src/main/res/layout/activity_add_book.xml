@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".library.AddBookActivity">
+
+    <include layout="@layout/toolbar" />
+
+    <fragment
+        android:id="@+id/ab_main_fragment"
+        class="it.polito.mad.mad2018.library.AddBookFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:layout="@layout/fragment_add_book" />
+
+</android.support.design.widget.CoordinatorLayout>

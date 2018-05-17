@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="@dimen/default_padding"
+                android:paddingTop="@dimen/default_padding"
+                android:paddingRight="@dimen/default_padding">
+
+    <TextView
+        android:id="@+id/dialog_checkbox_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/attribute" />
+
+    <CheckBox
+        android:id="@+id/dialog_checkbox_box"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/default_padding"
+        android:paddingEnd="@dimen/default_padding"
+        android:layout_alignBaseline="@+id/dialog_checkbox_text"
+        android:layout_alignBottom="@+id/dialog_checkbox_text"
+        android:layout_alignParentEnd="true"/>
+</RelativeLayout>

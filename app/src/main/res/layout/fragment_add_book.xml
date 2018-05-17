@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".library.AddBookFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_weight="1">
+
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/ab_isbn_edit"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start|center_vertical"
+                    android:hint="@string/hint_isbn"
+                    android:inputType="numberDecimal"
+                    android:maxLength="@integer/max_length_isbn" />
+            </android.support.design.widget.TextInputLayout>
+
+            <Button
+                android:id="@+id/ab_barcode_scan"
+                style="@style/Widget.AppCompat.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:text="@string/add_book_scan" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/ab_autocomplete"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:enabled="false"
+            android:text="@string/autocomplete" />
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            app:counterEnabled="true"
+            app:counterMaxLength="@integer/max_length_title">
+
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/ab_title_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_title"
+                android:inputType="text"
+                android:maxLength="@integer/max_length_title" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="16dp"
+                android:paddingEnd="4dp"
+                android:paddingStart="4dp"
+                android:text="@string/hint_author" />
+
+            <me.gujun.android.taggroup.TagGroup
+                android:id="@+id/tag_group_authors"
+                style="@style/TagGroup.Large"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1"
+                android:inputType="text"
+                android:maxLength="@integer/max_length_author"
+                android:padding="16dp"
+                app:atg_inputHint="@string/hint_author_add"
+                app:atg_isAppendMode="true" />
+        </LinearLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            app:counterEnabled="true"
+            app:counterMaxLength="@integer/max_length_publisher">
+
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/ab_publisher_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_publisher"
+                android:inputType="text"
+                android:maxLength="@integer/max_length_publisher" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            app:counterEnabled="true"
+            app:counterMaxLength="@integer/max_length_language">
+
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/ab_language_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_language"
+                android:inputType="text"
+                android:maxLength="@integer/max_length_language" />
+
+        </android.support.design.widget.TextInputLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/InputLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/hint_editionYear" />
+
+                <Spinner
+                    android:id="@+id/ab_edition_year_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:prompt="@string/hint_editionYear" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/InputLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/hint_condition" />
+
+                <Spinner
+                    android:id="@+id/ab_conditions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:prompt="@string/hint_condition" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="16dp"
+                android:paddingEnd="4dp"
+                android:paddingStart="4dp"
+                android:text="@string/hint_tags" />
+
+            <me.gujun.android.taggroup.TagGroup
+                android:id="@+id/tag_group"
+                style="@style/TagGroup"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1"
+                android:inputType="text"
+                android:maxLength="@integer/max_length_tag"
+                android:padding="16dp"
+                app:atg_inputHint="@string/ab_add_tag"
+                app:atg_isAppendMode="true" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp">
+
+            <Button
+                android:id="@+id/ab_add_book"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@string/add_book_confirm" />
+
+            <Button
+                android:id="@+id/ab_clear_fields"
+                style="@style/Widget.AppCompat.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/add_book_cancel" />
+        </LinearLayout>
+    </LinearLayout>
+</android.support.v4.widget.NestedScrollView>

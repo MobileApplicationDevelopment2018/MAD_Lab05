@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/sp_profile_picture"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="4"
+        android:contentDescription="@string/profile_picture"
+        android:scaleType="centerCrop" />
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="6"
+        android:paddingEnd="8dp"
+        android:paddingStart="8dp">
+
+        <include layout="@layout/fragment_show_profile_info" />
+
+    </android.support.v4.widget.NestedScrollView>
+</LinearLayout>
