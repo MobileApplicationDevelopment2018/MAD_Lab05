@@ -175,7 +175,7 @@ public class Conversation implements Serializable {
         return this.data.flags.archived;
     }
 
-    private boolean isBookOwner() {
+    public boolean isBookOwner() {
         return LocalUserProfile.isLocal(this.data.owner.uid);
     }
 

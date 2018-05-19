@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/sc_show_rating_dialog"
+        android:orderInCategory="300"
+        android:title="Rating dialog"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/sc_show_peer_profile"
         android:icon="@drawable/ic_person_white_24dp"
         android:orderInCategory="300"

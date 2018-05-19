@@ -59,6 +59,8 @@ public class SingleChatActivity extends AppCompatActivityDialog<SingleChatActivi
     private boolean profileShown;
     private boolean libraryShown;
 
+    private RatingFragment ratingFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -172,8 +174,8 @@ public class SingleChatActivity extends AppCompatActivityDialog<SingleChatActivi
         if (!profileShown && !libraryShown) {
             MenuInflater inflater = getMenuInflater();
             inflater.inflate(R.menu.menu_single_chat, menu);
-            return super.onCreateOptionsMenu(menu);
         }
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -190,6 +192,10 @@ public class SingleChatActivity extends AppCompatActivityDialog<SingleChatActivi
                         .commit();
                 updateViewsVisibility();
                 return true;
+            case R.id.sc_show_rating_dialog:
+                if(ratingFragment != null) {
+                    ratingFragment.show(getSupportFragmentManager(), "ratingFragment");
+                }
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -321,7 +327,6 @@ public class SingleChatActivity extends AppCompatActivityDialog<SingleChatActivi
                 conversationId = LocalUserProfile.getInstance().findConversationByBookId(book.getBookId());
                 if (conversationId == null) {
                     conversation = new Conversation(book);
-                    conversationId = conversation.getConversationId();
                     afterConversationLoaded();
                 } else {
                     setOnConversationLoadedListener();
@@ -335,6 +340,10 @@ public class SingleChatActivity extends AppCompatActivityDialog<SingleChatActivi
     }
 
     private void afterConversationLoaded() {
+        if(conversationId == null) {
+            conversationId = conversation.getConversationId();
+        }
+
         if (peer == null) {
             setOnProfileLoadedListener();
         }
@@ -345,6 +354,7 @@ public class SingleChatActivity extends AppCompatActivityDialog<SingleChatActivi
         updateViewsVisibility();
         if (conversation != null && !conversation.isNew()) {
             setupMessages();
+            ratingFragment = RatingFragment.Factory.newInstance(conversation.isBookOwner() ? "owner" : "peer", conversationId);
         }
         editTextMessage.setEnabled(conversation != null);
     }
