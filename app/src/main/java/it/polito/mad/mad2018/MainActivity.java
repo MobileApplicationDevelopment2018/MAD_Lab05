@@ -64,6 +64,9 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
     private FirebaseAuth firebaseAuth;
     private ValueEventListener profileListener;
 
+    private boolean signInActivityShown;
+    private boolean splashScreenShown;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,8 +80,8 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-
         firebaseAuth = FirebaseAuth.getInstance();
+        signInActivityShown = splashScreenShown = false;
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -93,12 +96,18 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
             preferences.edit().putBoolean(PREFERENCES_FIRST_TIME, false).apply();
             Intent onboardingIntent = new Intent(getApplicationContext(), OnboardingActivity.class);
             startActivity(onboardingIntent);
+            splashScreenShown = true;
         }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+
+        if (splashScreenShown) {
+            splashScreenShown = false;
+            return;
+        }
 
         if (firebaseAuth.getCurrentUser() != null) {
             if (LocalUserProfile.getInstance() == null) {
@@ -189,6 +198,7 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
         switch (requestCode) {
             case RC_SIGN_IN:
                 IdpResponse response = IdpResponse.fromResultIntent(data);
+                signInActivityShown = false;
 
                 // Successfully signed in
                 if (resultCode == RESULT_OK && firebaseAuth.getCurrentUser() != null) {
@@ -268,11 +278,16 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
 
     private void signIn() {
 
+        if (signInActivityShown) {
+            return;
+        }
+
         if (!Utilities.isNetworkConnected(this)) {
             openDialog(DialogID.DIALOG_NO_CONNECTION, true);
             return;
         }
 
+        signInActivityShown = true;
         startActivityForResult(
                 AuthUI.getInstance().createSignInIntentBuilder()
                         .setAvailableProviders(Arrays.asList(
