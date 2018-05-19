@@ -354,7 +354,7 @@ public class SingleChatActivity extends AppCompatActivityDialog<SingleChatActivi
         updateViewsVisibility();
         if (conversation != null && !conversation.isNew()) {
             setupMessages();
-            ratingFragment = RatingFragment.Factory.newInstance(conversation.isBookOwner() ? "owner" : "peer", conversationId);
+            ratingFragment = RatingFragment.Factory.newInstance(conversation.isBookOwner(), conversationId);
         }
         editTextMessage.setEnabled(conversation != null);
     }

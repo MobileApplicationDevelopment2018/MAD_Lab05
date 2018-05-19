@@ -9,17 +9,23 @@ import android.widget.EditText
 import android.widget.RatingBar
 import com.google.firebase.database.FirebaseDatabase
 import it.polito.mad.mad2018.R
+
 //import kotlinx.android.synthetic.main.fragment_rating.*
 
 class RatingFragment : DialogFragment() {
 
+    private val FIREBASE_CONVERSATIONS_KEY = "conversations"
+    private val FIREBASE_OWNER_KEY = "owner"
+    private val FIREBASE_PEER_KEY = "peer"
+    private val FIREBASE_RATING_KEY = "rating"
+
     private lateinit var conversationId: String
-    private lateinit var userType: String
+    private var isOwner: Boolean = false
 
     companion object Factory {
-        fun newInstance(userType: String, conversationId:String): RatingFragment {
+        fun newInstance(isOwner: Boolean, conversationId: String): RatingFragment {
             val ratingFragment = RatingFragment()
-            ratingFragment.userType = userType
+            ratingFragment.isOwner = isOwner
             ratingFragment.conversationId = conversationId
             return ratingFragment
         }
@@ -38,9 +44,9 @@ class RatingFragment : DialogFragment() {
             uploadRating()
             dialog.dismiss()
         })
-        builder.setNegativeButton("Cancel", { dialog, which -> dialog.dismiss() })
-        val dialog = builder.create()
-        return dialog
+        builder.setNegativeButton("Cancel", { dialog, _ -> dialog.dismiss() })
+
+        return builder.create()
     }
 
     private fun uploadRating() {
@@ -48,12 +54,12 @@ class RatingFragment : DialogFragment() {
         val ratingBar = dialog.findViewById<RatingBar>(R.id.rating_bar)
         val ratingComment = dialog.findViewById<EditText>(R.id.rating_comment)
 
-        FirebaseDatabase.getInstance().reference.child("conversations")
+        FirebaseDatabase.getInstance().reference.child(FIREBASE_CONVERSATIONS_KEY)
                 .child(conversationId)
-                .child(userType)
-                .child("rating")
+                .child(if (isOwner) FIREBASE_OWNER_KEY else FIREBASE_PEER_KEY)
+                .child(FIREBASE_RATING_KEY)
                 .setValue(Rating(ratingBar.rating, ratingComment.text.toString()))
     }
 
-    class Rating(val score:Float, val comment: String)
+    class Rating(val score: Float, val comment: String)
 }

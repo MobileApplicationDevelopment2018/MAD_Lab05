@@ -179,4 +179,6 @@
     <string name="splash_intro_text">Welcome to NoFAndroid! Search or share your books here!</string>
     <string name="delete_conversation">Delete the conversation?</string>
     <string name="delete_conversation_message">If you confirm, this conversation will be deleted from your archive forever.</string>
+    <string name="hint_rating_comment">Enter comment</string>
+    <string name="rating_title">Give your feedback</string>
 </resources>

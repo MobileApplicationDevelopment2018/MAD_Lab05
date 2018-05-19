@@ -159,4 +159,6 @@
     <string name="splash_intro_text">Benvenuto in NoFAndroid! Cerca o condividi qui i tuoi libri!</string>
     <string name="delete_conversation">Cancellare la conversazione?</string>
     <string name="delete_conversation_message">Se confermi, questa conversazione non sarà più visibile in futuro nel tuo archivio.</string>
+    <string name="hint_rating_comment">Inserisci commento</string>
+    <string name="rating_title">Lascia il tuo feedback</string>
 </resources>

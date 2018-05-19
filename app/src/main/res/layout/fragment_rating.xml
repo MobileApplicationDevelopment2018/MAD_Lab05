@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="16dp">
@@ -14,10 +15,10 @@
         android:fontFamily="sans-serif-medium"
         android:freezesText="true"
         android:gravity="center_horizontal"
-        android:text="title"
+        android:text="@string/rating_title"
         android:textSize="20sp" />
 
-    <TextView
+    <!--TextView
         android:id="@+id/rating_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,30 +26,34 @@
         android:fontFamily="sans-serif"
         android:freezesText="true"
         android:gravity="center_horizontal"
-        android:text="description"
-        android:textSize="16sp" />
+        android:text=""
+        android:textSize="16sp" /-->
 
     <RatingBar
         android:id="@+id/rating_bar"
-        style="@style/Base.Widget.AppCompat.RatingBar.Small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="16dp"
         android:layout_marginTop="8dp"
-        android:isIndicator="true"
         android:numStars="5"
         android:stepSize="0.5" />
 
-    <EditText
-        android:id="@+id/rating_comment"
+    <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="top"
-        android:hint=""
-        android:inputType="text|textMultiLine"
-        android:lines="5"
-        android:padding="12dp"
-        android:textCursorDrawable="@null" />
+        app:counterEnabled="true"
+        app:counterMaxLength="140"
+        app:hintEnabled="false">
 
+        <EditText
+            android:id="@+id/rating_comment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_rating_comment"
+            android:inputType="textMultiLine"
+            android:maxLines="5"
+            android:scrollbars="vertical"
+            android:padding="12dp" />
+    </android.support.design.widget.TextInputLayout>
 </LinearLayout>
