@@ -3,16 +3,33 @@
     "users": {
       "$uid": {
         ".read": "auth != null",
-        ".write": "$uid === auth.uid"
+        "books": {
+          "ownedBooks": {
+            ".write": "$uid === auth.uid"
+          }
+        },
+        "conversations": {
+          ".write": "$uid === auth.uid"
+        },
+        "profile": {
+          ".write": "$uid === auth.uid"
+        }
       }
     },
     "books": {
       ".read": "auth != null",
       "$bid": {
         /* the part  '|| (!newData.exists() && data.child('uid').val() === auth.uid)' - is kept for compatibility with Lab03 */
-        ".write": "(!data.exists() && newData.child('uid').val() === auth.uid && newData.child('deleted').val() === false) || (!newData.exists() && data.child('uid').val() === auth.uid)",
+        /* the part  'newData.child('deleted').val() === false ||' - is kept for compatibility with Lab04 */
+        ".write": "(!data.exists() && newData.child('uid').val() === auth.uid && (newData.child('deleted').val() === false || newData.child('flags/deleted').val() === false)) || (!newData.exists() && data.child('uid').val() === auth.uid)",
+        /* kept for compatibility */
         "deleted": {
           ".write": "data.val() !== true && newData.val() === true && newData.parent().child('uid').val() === auth.uid"
+        },
+        "flags": {
+          "deleted": {
+            ".write": "data.val() !== true && newData.val() === true && newData.parent().parent().child('uid').val() === auth.uid"
+          }
         }
       }
     },
@@ -30,16 +47,28 @@
         "owner": {
           "unreadMessages": {
             ".write": "newData.val() === 0 && newData.parent().child('uid').val() === auth.uid"
+          },
+          "rating": {
+            ".write": "!data.exists() && newData.parent().child('uid').val() === auth.uid"
           }
         },
         "peer": {
           "unreadMessages": {
             ".write": "newData.val() === 0 && newData.parent().child('uid').val() === auth.uid"
+          },
+          "rating": {
+            ".write": "!data.exists() && newData.parent().child('uid').val() === auth.uid"
           }
         },
         "flags": {
           "archived": {
-            ".write": "data.val() !== true && newData.val() === true && (newData.parent().parent().child('owner/uid').val() === auth.uid || newData.parent().parent().child('peer/uid').val() === auth.uid)"
+            ".write": "data.val() !== true && newData.val() === true && (newData.parent().parent().child('owner/uid').val() === auth.uid || newData.parent().parent().child('peer/uid').val() === auth.uid) && (newData.parent().child('borrowingState').val() !== 3 || newData.parent().child('returnState').val() === 3)"
+          },
+          "borrowingState": {
+            ".write": "(data.val() === 1 && newData.val() === 2 && newData.parent().parent().child('peer/uid').val() === auth.uid) || (data.val() === 2 && (newData.val() === 1 || newData.val() === 3) && newData.parent().parent().child('owner/uid').val() === auth.uid)"
+          },
+          "returnState": {
+            ".write": "newData.parent().child('borrowingState').val() == 3 && ((data.val() === 1 && newData.val() === 2 && newData.parent().parent().child('peer/uid').val() === auth.uid) || (data.val() === 2 && newData.val() === 3 && newData.parent().parent().child('owner/uid').val() === auth.uid))"
           }
         }
       }

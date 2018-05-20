@@ -38,7 +38,7 @@ public class MAD2018Application extends Application
     @Override
     public void onActivityStarted(Activity activity) {
         if (this.activitiesStartedCount == 0 && LocalUserProfile.getInstance() != null) {
-            LocalUserProfile.getInstance().startOnConversationsUpdatedListener();
+            LocalUserProfile.getInstance().addOnProfileUpdatedListener();
         }
         this.activitiesStartedCount++;
     }
@@ -55,7 +55,7 @@ public class MAD2018Application extends Application
     public void onActivityStopped(Activity activity) {
         this.activitiesStartedCount--;
         if (this.activitiesStartedCount == 0 && LocalUserProfile.getInstance() != null) {
-            LocalUserProfile.getInstance().stopOnConversationsUpdatedListener();
+            LocalUserProfile.getInstance().removeOnProfileUpdatedListener();
         }
     }
 

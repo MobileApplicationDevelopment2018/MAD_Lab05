@@ -105,20 +105,32 @@ public class ActiveChatsFragment extends Fragment {
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
 
-            archiveDialog = new AlertDialog.Builder(getContext())
-                    .setTitle(R.string.archive_conversation)
-                    .setMessage(R.string.archive_conversation_message)
-                    .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                        adapter.getItem(viewHolder.getAdapterPosition()).archiveConversation();
-                        adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-                    })
-                    .setNegativeButton(android.R.string.no, (dialog, which) ->
-                            adapter.notifyItemChanged(viewHolder.getAdapterPosition())
-                    )
-                    .setOnCancelListener(dialog ->
-                            adapter.notifyItemChanged(viewHolder.getAdapterPosition())
-                    )
-                    .show();
+            Conversation conversation = adapter.getItem(viewHolder.getAdapterPosition());
+            if (conversation.isArchivable()) {
+                archiveDialog = new AlertDialog.Builder(getContext())
+                        .setTitle(R.string.archive_conversation)
+                        .setMessage(R.string.archive_conversation_message)
+                        .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                            conversation.archiveConversation();
+                            adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                        })
+                        .setNegativeButton(android.R.string.no, (dialog, which) ->
+                                adapter.notifyItemChanged(viewHolder.getAdapterPosition())
+                        )
+                        .setOnCancelListener(dialog ->
+                                adapter.notifyItemChanged(viewHolder.getAdapterPosition())
+                        )
+                        .show();
+            } else {
+                archiveDialog = new AlertDialog.Builder(getContext())
+                        .setTitle(R.string.archive_conversation_not_possible)
+                        .setMessage(R.string.archive_conversation_message_not_possible)
+                        .setPositiveButton(android.R.string.yes, null)
+                        .setOnDismissListener(dialog ->
+                                adapter.notifyItemChanged(viewHolder.getAdapterPosition())
+                        )
+                        .show();
+            }
         }
     }
 }

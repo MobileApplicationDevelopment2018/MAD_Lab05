@@ -5,9 +5,23 @@
     tools:context=".BookInfoFragment">
 
     <item
+        android:id="@+id/fbi_show_profile"
+        android:icon="@drawable/ic_person_white_24dp"
+        android:title="@string/show_profile"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/fbi_show_chat"
+        android:icon="@drawable/ic_chat_white_24dp"
+        android:title="@string/open_conversation"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/fbi_delete_book"
         android:icon="@drawable/ic_delete_white_24dp"
         android:title="@string/delete_book"
-        app:showAsAction="always"
+        app:showAsAction="ifRoom"
         android:visible="false" />
 </menu>

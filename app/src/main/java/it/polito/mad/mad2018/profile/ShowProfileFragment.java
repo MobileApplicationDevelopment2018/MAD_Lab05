@@ -35,6 +35,9 @@ public class ShowProfileFragment extends Fragment {
 
     private static final String EDITABLE_KEY = "editable_key";
 
+    private UserProfile profile;
+
+    private UserProfile.OnProfileUpdatedListener onProfileUpdatedListener;
     private OnShowOwnedBooksClickListener onShowOwnedBooksClickListener;
     private boolean isEditable;
 
@@ -64,7 +67,7 @@ public class ShowProfileFragment extends Fragment {
         assert getView() != null;
         assert getArguments() != null;
 
-        final UserProfile profile = (UserProfile) getArguments().getSerializable(UserProfile.PROFILE_INFO_KEY);
+        profile = (UserProfile) getArguments().getSerializable(UserProfile.PROFILE_INFO_KEY);
         isEditable = getArguments().getBoolean(EDITABLE_KEY);
         assert profile != null;
 
@@ -132,6 +135,19 @@ public class ShowProfileFragment extends Fragment {
         this.onShowOwnedBooksClickListener = null;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        this.onProfileUpdatedListener = this::fillViews;
+        this.profile.addOnProfileUpdatedListener(onProfileUpdatedListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        this.profile.removeOnProfileUpdatedListener(onProfileUpdatedListener);
+    }
+
     private void fillViews(@NonNull UserProfile profile) {
         assert getView() != null;
 
@@ -179,6 +195,6 @@ public class ShowProfileFragment extends Fragment {
     }
 
     public interface OnShowOwnedBooksClickListener {
-        void OnShowOwnedBooksClick(UserProfile profile);
+        void OnShowOwnedBooksClick(@NonNull UserProfile profile);
     }
 }

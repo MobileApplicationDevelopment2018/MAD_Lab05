@@ -13,9 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +28,7 @@ import it.polito.mad.mad2018.R;
 import it.polito.mad.mad2018.chat.SingleChatActivity;
 import it.polito.mad.mad2018.data.Book;
 import it.polito.mad.mad2018.data.LocalUserProfile;
+import it.polito.mad.mad2018.data.OwnedBook;
 import it.polito.mad.mad2018.data.UserProfile;
 import it.polito.mad.mad2018.profile.ShowProfileFragment;
 import it.polito.mad.mad2018.utils.FragmentDialog;
@@ -55,11 +54,13 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
     private LongPressPopup popup;
     private ImageView popupImage;
 
+    private MenuItem showProfileMenuItem, showChatMenuItem;
+
     public BookInfoFragment() { /* Required empty public constructor */ }
 
-    public static BookInfoFragment newInstance(Book book, boolean showOwner, boolean deletable) {
-        showOwner = showOwner && !LocalUserProfile.isLocal(book.getOwnerId());
-        deletable = deletable && !showOwner;
+    public static BookInfoFragment newInstance(@NonNull Book book, boolean showOwner, boolean deletable) {
+        showOwner = showOwner && !book.isOwnedBook();
+        deletable = deletable && book.isDeletable();
 
         BookInfoFragment fragment = new BookInfoFragment();
         Bundle args = new Bundle();
@@ -81,7 +82,6 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
 
         assert getArguments() != null;
         book = (Book) getArguments().getSerializable(Book.BOOK_KEY);
-        boolean showOwner = getArguments().getBoolean(BOOK_SHOW_OWNER_KEY);
 
         assert book != null;
 
@@ -90,15 +90,7 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
         }
 
         View view = inflater.inflate(R.layout.fragment_book_info, container, false);
-
-        fillViewsBook(view);
-        if (showOwner) {
-            fillViewsOwner(view);
-        } else {
-            view.findViewById(R.id.fbi_layout_owner).setVisibility(View.GONE);
-            view.findViewById(R.id.fbi_line_extra).setVisibility(View.GONE);
-        }
-
+        fillViews(view);
         return view;
     }
 
@@ -108,8 +100,13 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
         inflater.inflate(R.menu.menu_book_info, menu);
 
         assert getArguments() != null;
+        showProfileMenuItem = menu.findItem(R.id.fbi_show_profile);
+        showChatMenuItem = menu.findItem(R.id.fbi_show_chat);
         MenuItem deleteBookItem = menu.findItem(R.id.fbi_delete_book);
-        deleteBookItem.setVisible(getArguments().getBoolean(BOOK_DELETABLE_KEY, false));
+
+        showProfileMenuItem.setVisible(owner != null && getArguments().getBoolean(BOOK_SHOW_OWNER_KEY));
+        showChatMenuItem.setVisible(owner != null && getArguments().getBoolean(BOOK_SHOW_OWNER_KEY));
+        deleteBookItem.setVisible(getArguments().getBoolean(BOOK_DELETABLE_KEY));
 
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -117,8 +114,25 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.fbi_show_profile:
+                assert getFragmentManager() != null;
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.bi_main_fragment, ShowProfileFragment.newInstance(owner, false))
+                        .addToBackStack(null)
+                        .commit();
+                return true;
+
+            case R.id.fbi_show_chat:
+                Intent intent = new Intent(getActivity(), SingleChatActivity.class);
+                intent.putExtra(UserProfile.PROFILE_INFO_KEY, owner);
+                intent.putExtra(Book.BOOK_KEY, book);
+                startActivity(intent);
+                return true;
+
             case R.id.fbi_delete_book:
                 this.openDialog(DialogID.DIALOG_DELETE, true);
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -152,7 +166,7 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
         outState.putSerializable(UserProfile.PROFILE_INFO_KEY, owner);
     }
 
-    private void fillViewsBook(View view) {
+    private void fillViews(View view) {
         String unknown = getString(R.string.unknown);
 
         TextView isbn = view.findViewById(R.id.fbi_book_isbn);
@@ -199,39 +213,6 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
         }
     }
 
-    private void fillViewsOwner(View view) {
-
-        View ownerLayout = view.findViewById(R.id.fbi_layout_owner);
-        View ownerInfoView = view.findViewById(R.id.fbi_book_owner_info);
-        TextView ownerNameTextView = view.findViewById(R.id.fbi_book_owner);
-        ProgressBar progressBarLoading = view.findViewById(R.id.fbi_loading_owner);
-        ImageButton chatButton = view.findViewById(R.id.fbi_chat);
-
-        ownerLayout.setVisibility(View.VISIBLE);
-        progressBarLoading.setVisibility(owner == null ? View.VISIBLE : View.GONE);
-        ownerInfoView.setVisibility(owner == null ? View.GONE : View.VISIBLE);
-        chatButton.setEnabled(owner != null);
-
-        if (owner != null) {
-            ownerNameTextView.setText(owner.getUsername());
-        }
-
-        ownerNameTextView.setOnClickListener(v -> {
-            assert getFragmentManager() != null;
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.bi_main_fragment, ShowProfileFragment.newInstance(owner, false))
-                    .addToBackStack(null) // To allow to come back to the previous fragment when back is pressed
-                    .commit();
-        });
-
-        chatButton.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), SingleChatActivity.class);
-            intent.putExtra(UserProfile.PROFILE_INFO_KEY, owner);
-            intent.putExtra(Book.BOOK_KEY, book);
-            startActivity(intent);
-        });
-    }
-
     private void setOnProfileLoadedListener() {
         assert getArguments() != null;
         boolean showOwner = getArguments().getBoolean(BOOK_SHOW_OWNER_KEY);
@@ -250,8 +231,10 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
                         UserProfile.Data data = dataSnapshot.getValue(UserProfile.Data.class);
                         if (data != null) {
                             owner = new UserProfile(book.getOwnerId(), data);
-                            assert getView() != null;
-                            fillViewsOwner(getView());
+                            if (showProfileMenuItem != null && showChatMenuItem != null) {
+                                showProfileMenuItem.setVisible(getArguments().getBoolean(BOOK_SHOW_OWNER_KEY));
+                                showChatMenuItem.setVisible(getArguments().getBoolean(BOOK_SHOW_OWNER_KEY));
+                            }
                         }
                     }
 
@@ -272,6 +255,7 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
     }
 
     private void deleteBook() {
+        OwnedBook book = new OwnedBook(this.book);
         book.deleteFromAlgolia((json, e) -> {
             if (e != null) {
                 Toast.makeText(getContext(), R.string.error_occurred, Toast.LENGTH_LONG).show();
@@ -301,7 +285,6 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
         if (dialogInstance != null) {
             setDialogInstance(dialogInstance);
         }
-
     }
 
     @Override

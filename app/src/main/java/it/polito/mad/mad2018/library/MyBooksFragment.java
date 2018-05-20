@@ -68,7 +68,7 @@ public class MyBooksFragment extends Fragment {
             recyclerView.setVisibility(count == 0 ? View.GONE : View.VISIBLE);
         };
 
-        FirebaseRecyclerOptions<Book> options = Book.getBooksByUser(profile.getUserId());
+        FirebaseRecyclerOptions<Book> options = Book.getOwnedBooksReference(profile.getUserId());
         adapter = new BookAdapter(options, (v, model) -> {
             Intent toBookInfo = new Intent(getActivity(), BookInfoActivity.class);
             toBookInfo.putExtra(Book.BOOK_KEY, model);

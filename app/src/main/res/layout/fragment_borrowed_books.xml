@@ -5,10 +5,18 @@
     android:layout_height="match_parent"
     tools:context=".library.BorrowedBooksFragment">
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/fbb_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp"
+        android:visibility="gone" />
+
     <TextView
+        android:id="@+id/fbb_no_books"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:text="@string/borrowed_books"
+        android:text="@string/no_books"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
 </FrameLayout>

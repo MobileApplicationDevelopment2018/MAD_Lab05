@@ -64,7 +64,18 @@ exports.onConversationArchived = functions.database.ref('/conversations/{cid}/fl
         return Promise.all(promises);
     });
 
-exports.onBookDeleted = functions.database.ref('/books/{bid}/deleted')
+/* Compatibility with Lab04 */
+exports.onBookDeletedOld = functions.database.ref('/books/{bid}/deleted')
+    .onWrite((change, context) => {
+
+        if (!(change.before.val() !== true && change.after.val() === true)) {
+            return true;
+        }
+
+        return admin.database.ref('/books/{bid}/flags/deleted').set(true);
+    });
+
+exports.onBookDeleted = functions.database.ref('/books/{bid}/flags/deleted')
     .onWrite((change, context) => {
 
         if (!(change.before.val() !== true && change.after.val() === true)) {
@@ -78,6 +89,67 @@ exports.onBookDeleted = functions.database.ref('/books/{bid}/deleted')
             return performDelete(results);
         })
     });
+
+exports.onBorrowingStarted = functions.database.ref('/conversations/{cid}/flags/borrowingState')
+    .onWrite((change, context) => {
+
+        if (change.after.val() !== 3) {
+            return true;
+        }
+
+        const cid = context.params.cid;
+        let promises = [];
+
+        promises.push(admin.database().ref('/conversations/' + cid + '/bookId').once('value'));
+        promises.push(admin.database().ref('/conversations/' + cid + '/owner/uid').once('value'));
+        promises.push(admin.database().ref('/conversations/' + cid + '/peer/uid').once('value'));
+
+        return Promise.all(promises).then(results => {
+            const bookId = results[0].val();
+            const userId = results[1].val();
+            const peerId = results[2].val();
+
+            let promises = [];
+
+            promises.push(admin.database().ref('/books/' + bookId + '/available').set(false));
+            promises.push(admin.database().ref('/users/' + userId + '/books/lentBooks/' + bookId).set(peerId));
+            promises.push(admin.database().ref('/users/' + peerId + '/books/borrowedBooks/' + bookId).set(userId));
+
+            promises.push(admin.database().ref('/users/' + userId + '/statistics/lentBooks').transaction(count => { return (count || 0) + 1; }));
+            promises.push(admin.database().ref('/users/' + peerId + '/statistics/borrowedBooks').transaction(count => { return (count || 0) + 1; }));
+            promises.push(admin.database().ref('/users/' + peerId + '/statistics/toBeReturnedBooks').transaction(count => { return (count || 0) + 1; }));
+
+            return Promise.all(promises);
+        });
+    });
+
+exports.onBorrowingEnded = functions.database.ref('/conversations/{cid}/flags/returnState')
+        .onWrite((change, context) => {
+
+            if (change.after.val() !== 3) {
+                return true;
+            }
+
+            const cid = context.params.cid;
+            let promises = [];
+
+            promises.push(admin.database().ref('/conversations/' + cid + '/bookId').once('value'));
+            promises.push(admin.database().ref('/conversations/' + cid + '/owner/uid').once('value'));
+            promises.push(admin.database().ref('/conversations/' + cid + '/peer/uid').once('value'));
+
+            return Promise.all(promises).then(results => {
+                const bookId = results[0].val();
+                const userId = results[1].val();
+                const peerId = results[2].val();
+
+                let promises = [];
+                promises.push(admin.database().ref('/books/' + bookId + '/available').set(true));
+                promises.push(admin.database().ref('/users/' + userId + '/books/lentBooks/' + bookId).remove());
+                promises.push(admin.database().ref('/users/' + peerId + '/books/borrowedBooks/' + bookId).remove());
+                promises.push(admin.database().ref('/users/' + peerId + '/statistics/toBeReturnedBooks').transaction(count => { return count - 1; }));
+                return Promise.all(promises);
+            });
+        });
 
 function sendNotifications(cid, uid, rid, message) {
 

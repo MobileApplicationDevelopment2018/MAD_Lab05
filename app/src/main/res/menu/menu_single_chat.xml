@@ -2,14 +2,48 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/sc_show_peer_profile"
+        android:icon="@drawable/ic_person_white_24dp"
+        android:orderInCategory="300"
+        android:title="@string/show_profile"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/sc_show_book_info"
+        android:icon="@drawable/ic_book_white_24dp"
+        android:orderInCategory="300"
+        android:title="@string/show_book"
+        app:showAsAction="ifRoom" />
+
+    <!-- TODO: to be removed -->
+    <item
         android:id="@+id/sc_show_rating_dialog"
         android:orderInCategory="300"
         android:title="Rating dialog"
         app:showAsAction="never" />
     <item
-        android:id="@+id/sc_show_peer_profile"
-        android:icon="@drawable/ic_person_white_24dp"
+        android:id="@+id/sc_request_borrowing"
         android:orderInCategory="300"
-        android:title="@string/edit_profile"
+        android:title="Request Borrowing"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/sc_accept_borrowing"
+        android:orderInCategory="300"
+        android:title="Accept Borrowing"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/sc_reject_borrowing"
+        android:orderInCategory="300"
+        android:title="Reject Borrowing"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/sc_request_return"
+        android:orderInCategory="300"
+        android:title="Request Return"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/sc_confirm_return"
+        android:orderInCategory="300"
+        android:title="Confirm Return"
         app:showAsAction="ifRoom" />
 </menu>

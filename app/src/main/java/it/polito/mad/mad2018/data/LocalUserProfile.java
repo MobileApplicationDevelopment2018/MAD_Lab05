@@ -11,8 +11,6 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserInfo;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
@@ -39,8 +37,6 @@ public class LocalUserProfile extends UserProfile {
 
     private boolean localImageToBeDeleted;
     private String localImagePath;
-
-    private transient ValueEventListener onConversationsUpdatedListener;
 
     private LocalUserProfile(@NonNull String uid, @NonNull Data data) {
         super(uid, data);
@@ -85,13 +81,13 @@ public class LocalUserProfile extends UserProfile {
 
     public static void setInstance(LocalUserProfile localInstance) {
         if (LocalUserProfile.localInstance != null) {
-            LocalUserProfile.localInstance.stopOnConversationsUpdatedListener();
+            LocalUserProfile.localInstance.removeOnProfileUpdatedListener();
         }
 
         LocalUserProfile.localInstance = localInstance;
 
         if (LocalUserProfile.localInstance != null) {
-            LocalUserProfile.localInstance.startOnConversationsUpdatedListener();
+            LocalUserProfile.localInstance.addOnProfileUpdatedListener();
         }
     }
 
@@ -273,8 +269,8 @@ public class LocalUserProfile extends UserProfile {
             } catch (JSONException e) { /* Do nothing */ }
         }
 
-        Book.AlgoliaBookIndex.getInstance()
-                .partialUpdateObjectsAsync(new JSONArray(bookUpdates), completionHandler);
+        OwnedBook.AlgoliaBookIndex.getInstance()
+                .partialUpdateObjectsAsync(new JSONArray(bookUpdates), false, completionHandler);
     }
 
     Task<?> addConversation(@NonNull String conversationId, @NonNull String bookId) {
@@ -318,43 +314,5 @@ public class LocalUserProfile extends UserProfile {
             }
         }
         return null;
-    }
-
-    public void startOnConversationsUpdatedListener() {
-
-        stopOnConversationsUpdatedListener();
-
-        onConversationsUpdatedListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                UserProfile.Data.Conversations conversations =
-                        dataSnapshot.getValue(UserProfile.Data.Conversations.class);
-                if (conversations != null) {
-                    LocalUserProfile.this.data.conversations = conversations;
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                /* Do nothing */
-            }
-        };
-
-        FirebaseDatabase.getInstance().getReference()
-                .child(FIREBASE_USERS_KEY)
-                .child(this.getUserId())
-                .child(FIREBASE_CONVERSATIONS_KEY)
-                .addValueEventListener(onConversationsUpdatedListener);
-    }
-
-    public void stopOnConversationsUpdatedListener() {
-        if (onConversationsUpdatedListener != null) {
-            FirebaseDatabase.getInstance().getReference()
-                    .child(FIREBASE_USERS_KEY)
-                    .child(this.getUserId())
-                    .child(FIREBASE_CONVERSATIONS_KEY)
-                    .removeEventListener(onConversationsUpdatedListener);
-            onConversationsUpdatedListener = null;
-        }
     }
 }

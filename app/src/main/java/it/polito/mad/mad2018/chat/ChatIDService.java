@@ -1,6 +1,7 @@
 package it.polito.mad.mad2018.chat;
 
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -13,11 +14,14 @@ import it.polito.mad.mad2018.data.UserProfile;
 
 public class ChatIDService extends FirebaseInstanceIdService {
 
-    public static void uploadToken(UserProfile profile, String token) {
+    public static void uploadToken(@NonNull UserProfile profile, String token) {
         final String FIREBASE_TOKENS_KEY = "tokens";
-        FirebaseDatabase.getInstance().getReference().child(FIREBASE_TOKENS_KEY)
-                .child(profile.getUserId())
-                .child(token).setValue(true);
+
+        if (token != null) {
+            FirebaseDatabase.getInstance().getReference().child(FIREBASE_TOKENS_KEY)
+                    .child(profile.getUserId())
+                    .child(token).setValue(true);
+        }
     }
 
     public static void deleteToken() {

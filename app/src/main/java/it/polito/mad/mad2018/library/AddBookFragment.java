@@ -45,6 +45,7 @@ import it.polito.mad.mad2018.R;
 import it.polito.mad.mad2018.barcodereader.BarcodeCaptureActivity;
 import it.polito.mad.mad2018.data.Book;
 import it.polito.mad.mad2018.data.LocalUserProfile;
+import it.polito.mad.mad2018.data.OwnedBook;
 import it.polito.mad.mad2018.utils.FileUtilities;
 import it.polito.mad.mad2018.utils.FragmentDialog;
 import it.polito.mad.mad2018.utils.IsbnQuery;
@@ -74,7 +75,7 @@ public class AddBookFragment extends FragmentDialog<AddBookFragment.DialogID>
     private Button scanBarcodeBtn, addBookBtn, resetBtn, autocompleteBtn;
     private TagGroup tagGroup, authorEtGroup;
 
-    private Book book;
+    private OwnedBook book;
     private boolean fileToBeDeleted;
 
     private OnBookAddedListener onBookAddedListener;
@@ -142,7 +143,7 @@ public class AddBookFragment extends FragmentDialog<AddBookFragment.DialogID>
         book = null;
         fileToBeDeleted = false;
         if (savedInstanceState != null) {
-            book = (Book) savedInstanceState.getSerializable(Book.BOOK_KEY);
+            book = (OwnedBook) savedInstanceState.getSerializable(Book.BOOK_KEY);
             fileToBeDeleted = savedInstanceState.getBoolean(TO_BE_DELETED_KEY, false);
         }
 
@@ -181,7 +182,7 @@ public class AddBookFragment extends FragmentDialog<AddBookFragment.DialogID>
             Toast.makeText(getContext(), R.string.add_book_query_ok, Toast.LENGTH_SHORT).show();
 
             final Volume.VolumeInfo volumeInfo = volumes.getItems().get(0).getVolumeInfo();
-            Book book = new Book(isbnEdit.getText().toString(), volumeInfo);
+            OwnedBook book = new OwnedBook(isbnEdit.getText().toString(), volumeInfo);
             fillViews(book);
             hideSoftKeyboard();
         }
@@ -308,16 +309,16 @@ public class AddBookFragment extends FragmentDialog<AddBookFragment.DialogID>
 
         Book.BookConditions condition = (Book.BookConditions) conditionSpinner.getSelectedItem();
         List<String> tags = Arrays.asList(tagGroup.getTags());
-        book = new Book(isbn, title, Arrays.asList(authors), language, publisher, year,
-                condition, tags, getResources());
+        book = new OwnedBook(isbn, title, Arrays.asList(authors), language, publisher, year,
+                condition, tags);
 
         openDialog(DialogID.DIALOG_ADD_PICTURE, true);
     }
 
     private void processPicture(@NonNull String imagePath) {
         new PictureUtilities.CompressImageAsync(
-                imagePath, Book.BOOK_PICTURE_SIZE, Book.BOOK_THUMBNAIL_SIZE,
-                Book.BOOK_PICTURE_QUALITY, picture -> {
+                imagePath, OwnedBook.BOOK_PICTURE_SIZE, OwnedBook.BOOK_THUMBNAIL_SIZE,
+                OwnedBook.BOOK_PICTURE_QUALITY, picture -> {
 
             if (fileToBeDeleted) {
                 assert getActivity() != null;

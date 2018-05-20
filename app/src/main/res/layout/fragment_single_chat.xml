@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chat_main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/chat_messages"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/chat_line"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/chat_no_messages"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/no_messages"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/chat_line"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@id/button_send"
+        android:background="@color/light_green_300" />
+
+    <ImageButton
+        android:id="@+id/button_send"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:background="@null"
+        android:contentDescription="@string/send_message"
+        android:padding="10dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_send_black_24dp"
+        android:tint="@color/colorPrimary" />
+
+    <EditText
+        android:id="@+id/message_send"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/chat_line"
+        android:layout_marginStart="8dp"
+        android:layout_toStartOf="@id/button_send"
+        android:hint="@string/message"
+        android:inputType="textMultiLine"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+
+</RelativeLayout>

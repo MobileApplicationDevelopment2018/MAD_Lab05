@@ -154,11 +154,21 @@
     <string name="message">Messaggio</string>
     <string name="archive_conversation">Archivio la conversazione?</string>
     <string name="archive_conversation_message">Se confermi, né tu né l\'altro utente potrete inviare altri messaggi in questa conversazione.</string>
+    <string name="archive_conversation_not_possible">Impossibile archiviare la conversazione.</string>
+    <string name="archive_conversation_message_not_possible">Al momento non è possibile archiviare la conversazione, in quanto il prestito non è ancora stato completato.</string>
     <string name="conversation_archived">Conversazione archiviata</string>
     <string name="conversation_archived_message">La conversazione è stata archiviata dall\'altro utente.</string>
     <string name="splash_intro_text">Benvenuto in NoFAndroid! Cerca o condividi qui i tuoi libri!</string>
     <string name="delete_conversation">Cancellare la conversazione?</string>
     <string name="delete_conversation_message">Se confermi, questa conversazione non sarà più visibile in futuro nel tuo archivio.</string>
+    <string name="message_request_borrowing">Mi piacerebbe prendere in prestito il tuo libro intitolato \'%1$s\'.</string>
+    <string name="message_borrowing_request_accept">La tua richiesta di prestito è stata accettata!</string>
+    <string name="message_borrowing_request_reject">La tua richiesta di prestito è stata rifiutata!</string>
+    <string name="message_request_return">Vorrei restituirti il tuo libro intitolato \'%1$s\'.</string>
+    <string name="message_request_return_confirm">Il prestito si è concluso correttamente. Grazie!.</string>
+    <string name="error_perform_action">Qualcosa è andato storto durante l\'esecuzione dell\'operazione. Per favore, controlla la tua connessione ad Internet.</string>
+    <string name="open_conversation">Apri conversazione</string>
+    <string name="show_book">Mostra libro</string>
     <string name="hint_rating_comment">Inserisci commento</string>
     <string name="rating_title">Lascia il tuo feedback</string>
 </resources>

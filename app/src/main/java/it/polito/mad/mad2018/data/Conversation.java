@@ -1,5 +1,6 @@
 package it.polito.mad.mad2018.data;
 
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 
@@ -15,19 +16,22 @@ import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.Serializable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import it.polito.mad.mad2018.MAD2018Application;
+import it.polito.mad.mad2018.R;
 import it.polito.mad.mad2018.utils.Utilities;
 
 public class Conversation implements Serializable {
 
     public static final String CONVERSATION_KEY = "conversation_key";
     public static final String CONVERSATION_ID_KEY = "conversation_id_key";
-
     public static final long UPDATE_TIME = 30000;
 
     private static final String FIREBASE_CONVERSATIONS_KEY = "conversations";
@@ -37,12 +41,13 @@ public class Conversation implements Serializable {
     private static final String FIREBASE_UNREAD_MESSAGES_KEY = "unreadMessages";
     private static final String FIREBASE_FLAGS_KEY = "flags";
     private static final String FIREBASE_FLAG_ARCHIVED_KEY = "archived";
+    private static final String FIREBASE_FLAG_BORROWING_STATE_KEY = "borrowingState";
+    private static final String FIREBASE_FLAG_RETURN_STATE_KEY = "returnState";
     private static final String FIREBASE_CONVERSATION_ORDER_BY_KEY = "timestamp";
 
     private final String conversationId;
     private final Conversation.Data data;
-
-    private transient ValueEventListener archivedListener;
+    private transient ValueEventListener onConversationFlagsUpdatedListener;
 
     public Conversation(@NonNull Book book) {
         this.conversationId = Conversation.generateConversationId();
@@ -107,16 +112,15 @@ public class Conversation implements Serializable {
                 .removeEventListener(listener);
     }
 
-    public void startArchivedListener(@NonNull OnConversationArchivedListener listener) {
+    public void startOnConversationFlagsUpdatedListener(@NonNull OnConversationFlagsUpdatedListener listener) {
 
-        archivedListener = new ValueEventListener() {
+        onConversationFlagsUpdatedListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Object archived = dataSnapshot.getValue();
-                if (archived instanceof Boolean && !Conversation.this.data.flags.archived
-                        && (boolean) archived) {
-                    Conversation.this.data.flags.archived = true;
-                    listener.onConversationArchived();
+                Conversation.Data.Flags flags = dataSnapshot.getValue(Conversation.Data.Flags.class);
+                if (flags != null) {
+                    Conversation.this.data.flags = flags;
+                    listener.onConversationFlagsChanged();
                 }
             }
 
@@ -130,20 +134,18 @@ public class Conversation implements Serializable {
                 .child(FIREBASE_CONVERSATIONS_KEY)
                 .child(conversationId)
                 .child(FIREBASE_FLAGS_KEY)
-                .child(FIREBASE_FLAG_ARCHIVED_KEY)
-                .addValueEventListener(archivedListener);
+                .addValueEventListener(onConversationFlagsUpdatedListener);
     }
 
-    public void stopArchivedListener() {
+    public void stopOnConversationFlagsUpdatedListener() {
 
-        if (archivedListener != null) {
+        if (onConversationFlagsUpdatedListener != null) {
             FirebaseDatabase.getInstance().getReference()
                     .child(FIREBASE_CONVERSATIONS_KEY)
                     .child(conversationId)
                     .child(FIREBASE_FLAGS_KEY)
-                    .child(FIREBASE_FLAG_ARCHIVED_KEY)
-                    .removeEventListener(archivedListener);
-            archivedListener = null;
+                    .removeEventListener(onConversationFlagsUpdatedListener);
+            onConversationFlagsUpdatedListener = null;
         }
     }
 
@@ -169,6 +171,12 @@ public class Conversation implements Serializable {
 
     public boolean isNew() {
         return this.data.messages.size() == 0;
+    }
+
+    public boolean isArchivable() {
+        return !isArchived() &&
+                (this.data.flags.borrowingState != Data.Flags.ACCEPTED ||
+                        this.data.flags.returnState == Data.Flags.ACCEPTED);
     }
 
     public boolean isArchived() {
@@ -240,6 +248,10 @@ public class Conversation implements Serializable {
     }
 
     public Task<?> archiveConversation() {
+        if (!this.isArchivable()) {
+            throw new ForbiddenActionException();
+        }
+
         this.data.flags.archived = true;
 
         List<Task<?>> tasks = new ArrayList<>();
@@ -263,8 +275,142 @@ public class Conversation implements Serializable {
         return LocalUserProfile.getInstance().deleteConversation(conversationId);
     }
 
-    public interface OnConversationArchivedListener {
-        void onConversationArchived();
+    public boolean canRequestBorrowing() {
+        return !this.isBookOwner() && !this.isArchived() &&
+                this.data.flags.borrowingState == Data.Flags.NOT_REQUESTED;
+    }
+
+    public boolean isPendingBorrowingRequest() {
+        return !this.isArchived() && this.data.flags.borrowingState == Data.Flags.REQUESTED;
+    }
+
+    public boolean canAnswerBorrowingRequest() {
+        return this.isBookOwner() && this.isPendingBorrowingRequest();
+    }
+
+    public boolean canRequestReturn() {
+        return !this.isBookOwner() && !this.isArchived() &&
+                this.data.flags.borrowingState == Data.Flags.ACCEPTED &&
+                this.data.flags.returnState == Data.Flags.NOT_REQUESTED;
+    }
+
+    public boolean isPendingReturnRequest() {
+        return !this.isArchived() &&
+                this.data.flags.borrowingState == Data.Flags.ACCEPTED &&
+                this.data.flags.returnState == Data.Flags.REQUESTED;
+    }
+
+    public boolean canConfirmReturnRequest() {
+        return this.isBookOwner() && isPendingReturnRequest();
+    }
+
+    public Task<?> requestBorrowing(@NonNull Book book) {
+        if (!this.canRequestBorrowing()) {
+            throw new ForbiddenActionException();
+        }
+
+        this.data.flags.borrowingState = Data.Flags.REQUESTED;
+        List<Task<?>> tasks = new ArrayList<>();
+
+        tasks.add(FirebaseDatabase.getInstance().getReference()
+                .child(FIREBASE_CONVERSATIONS_KEY)
+                .child(conversationId)
+                .child(FIREBASE_FLAGS_KEY)
+                .child(FIREBASE_FLAG_BORROWING_STATE_KEY)
+                .setValue(this.data.flags.borrowingState));
+
+        tasks.add(sendMessage(MAD2018Application.getApplicationContextStatic()
+                .getString(R.string.message_request_borrowing, book.getTitle())));
+
+        return Tasks.whenAllSuccess(tasks);
+    }
+
+    public Task<?> acceptBorrowingRequest() {
+        if (!this.canAnswerBorrowingRequest()) {
+            throw new ForbiddenActionException();
+        }
+
+        this.data.flags.borrowingState = Data.Flags.ACCEPTED;
+        List<Task<?>> tasks = new ArrayList<>();
+
+        tasks.add(FirebaseDatabase.getInstance().getReference()
+                .child(FIREBASE_CONVERSATIONS_KEY)
+                .child(conversationId)
+                .child(FIREBASE_FLAGS_KEY)
+                .child(FIREBASE_FLAG_BORROWING_STATE_KEY)
+                .setValue(this.data.flags.borrowingState));
+
+        tasks.add(sendMessage(MAD2018Application.getApplicationContextStatic()
+                .getString(R.string.message_borrowing_request_accept)));
+
+        return Tasks.whenAllSuccess(tasks);
+    }
+
+    public Task<?> rejectBorrowingRequest() {
+        if (!this.canAnswerBorrowingRequest()) {
+            throw new ForbiddenActionException();
+        }
+
+        this.data.flags.borrowingState = Data.Flags.NOT_REQUESTED;
+        List<Task<?>> tasks = new ArrayList<>();
+
+        tasks.add(FirebaseDatabase.getInstance().getReference()
+                .child(FIREBASE_CONVERSATIONS_KEY)
+                .child(conversationId)
+                .child(FIREBASE_FLAGS_KEY)
+                .child(FIREBASE_FLAG_BORROWING_STATE_KEY)
+                .setValue(this.data.flags.borrowingState));
+
+        tasks.add(sendMessage(MAD2018Application.getApplicationContextStatic()
+                .getString(R.string.message_borrowing_request_reject)));
+
+        return Tasks.whenAllSuccess(tasks);
+    }
+
+    public Task<?> requestReturn(@NonNull Book book) {
+        if (!this.canRequestReturn()) {
+            throw new ForbiddenActionException();
+        }
+
+        this.data.flags.returnState = Data.Flags.REQUESTED;
+        List<Task<?>> tasks = new ArrayList<>();
+
+        tasks.add(FirebaseDatabase.getInstance().getReference()
+                .child(FIREBASE_CONVERSATIONS_KEY)
+                .child(conversationId)
+                .child(FIREBASE_FLAGS_KEY)
+                .child(FIREBASE_FLAG_RETURN_STATE_KEY)
+                .setValue(this.data.flags.returnState));
+
+        tasks.add(sendMessage(MAD2018Application.getApplicationContextStatic()
+                .getString(R.string.message_request_return, book.getTitle())));
+
+        return Tasks.whenAllSuccess(tasks);
+    }
+
+    public Task<?> confirmReturn() {
+        if (!this.canConfirmReturnRequest()) {
+            throw new ForbiddenActionException();
+        }
+
+        this.data.flags.returnState = Data.Flags.ACCEPTED;
+        List<Task<?>> tasks = new ArrayList<>();
+
+        tasks.add(FirebaseDatabase.getInstance().getReference()
+                .child(FIREBASE_CONVERSATIONS_KEY)
+                .child(conversationId)
+                .child(FIREBASE_FLAGS_KEY)
+                .child(FIREBASE_FLAG_RETURN_STATE_KEY)
+                .setValue(this.data.flags.returnState));
+
+        tasks.add(sendMessage(MAD2018Application.getApplicationContextStatic()
+                .getString(R.string.message_request_return_confirm)));
+
+        return Tasks.whenAllSuccess(tasks);
+    }
+
+    public interface OnConversationFlagsUpdatedListener {
+        void onConversationFlagsChanged();
     }
 
     public static class Message implements Serializable {
@@ -316,12 +462,27 @@ public class Conversation implements Serializable {
         }
 
         private static class Flags implements Serializable {
+            private static final int NOT_REQUESTED = 1;
+            private static final int REQUESTED = 2;
+            private static final int ACCEPTED = 3;
+
             public boolean archived;
             public boolean bookDeleted;
+            public @State
+            int borrowingState;
+            public @State
+            int returnState;
 
             public Flags() {
                 this.archived = false;
                 this.bookDeleted = false;
+                this.borrowingState = NOT_REQUESTED;
+                this.returnState = NOT_REQUESTED;
+            }
+
+            @Retention(RetentionPolicy.SOURCE)
+            @IntDef({NOT_REQUESTED, REQUESTED, ACCEPTED})
+            private @interface State {
             }
         }
 
@@ -353,5 +514,8 @@ public class Conversation implements Serializable {
                 this.unreadMessages = 0;
             }
         }
+    }
+
+    private static class ForbiddenActionException extends RuntimeException {
     }
 }

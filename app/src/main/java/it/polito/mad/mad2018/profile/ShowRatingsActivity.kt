@@ -1,11 +1,10 @@
 package it.polito.mad.mad2018.profile
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.support.v7.app.AppCompatActivity
 import it.polito.mad.mad2018.R
 
-class ShowRatingsActivity : AppCompatActivity(){
+class ShowRatingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

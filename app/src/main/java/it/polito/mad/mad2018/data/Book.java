@@ -1,41 +1,27 @@
 package it.polito.mad.mad2018.data;
 
-import android.content.res.Resources;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.text.TextUtils;
 
-import com.algolia.search.saas.AlgoliaException;
-import com.algolia.search.saas.Client;
-import com.algolia.search.saas.CompletionHandler;
-import com.algolia.search.saas.Index;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
-import com.google.api.services.books.model.Volume;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
-import com.google.gson.GsonBuilder;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import it.polito.mad.mad2018.MAD2018Application;
 import it.polito.mad.mad2018.R;
-import it.polito.mad.mad2018.utils.PictureUtilities;
 import it.polito.mad.mad2018.utils.Utilities;
 
 public class Book implements Serializable {
@@ -48,77 +34,28 @@ public class Book implements Serializable {
     public static final String ALGOLIA_BOOK_TITLE_KEY = "title";
     public static final String ALGOLIA_HAS_IMAGE_KEY = "hasImage";
     public static final String ALGOLIA_CONDITIONS_KEY = "bookConditions.value";
+    public static final String ALGOLIA_AVAILABLE_KEY = "available";
     public static final String ALGOLIA_GEOLOC_KEY = "_geoloc";
     public static final String ALGOLIA_GEOLOC_LAT_KEY = "lat";
     public static final String ALGOLIA_GEOLOC_LON_KEY = "lon";
 
     public static final int INITIAL_YEAR = 1900;
-    public static final int BOOK_PICTURE_SIZE = 1024;
-    public static final int BOOK_PICTURE_QUALITY = 50;
-    public static final int BOOK_THUMBNAIL_SIZE = 256;
 
-    private static final String FIREBASE_BOOKS_KEY = "books";
-    private static final String FIREBASE_DELETED_BOOK_KEY = "deleted";
+    static final String FIREBASE_BOOKS_KEY = "books";
+    static final String FIREBASE_FLAGS_KEY = "flags";
+    static final String FIREBASE_DELETED_BOOK_KEY = "deleted";
     private static final String FIREBASE_STORAGE_BOOKS_FOLDER = "books";
     private static final String FIREBASE_STORAGE_IMAGE_NAME = "picture";
     private static final String FIREBASE_STORAGE_THUMBNAIL_NAME = "thumbnail";
 
-    private final String bookId;
-    private final Book.Data data;
+    final String bookId;
+    final Book.Data data;
+
+    private transient ValueEventListener onBookFlagsUpdatedListener;
 
     public Book(@NonNull String bookId, @NonNull Data data) {
         this.bookId = bookId;
         this.data = data;
-    }
-
-    public Book(@NonNull String isbn, @NonNull Volume.VolumeInfo volumeInfo) {
-        this.bookId = generateBookId();
-        this.data = new Data();
-
-        this.data.bookInfo.isbn = isbn;
-        this.data.bookInfo.title = volumeInfo.getTitle();
-        this.data.bookInfo.authors = volumeInfo.getAuthors();
-        this.data.bookInfo.publisher = volumeInfo.getPublisher();
-
-        if (volumeInfo.getLanguage() != null) {
-            this.data.bookInfo.language = new Locale(volumeInfo.getLanguage())
-                    .getDisplayLanguage(Locale.getDefault());
-        }
-
-        String year = volumeInfo.getPublishedDate();
-        if (year != null && year.length() >= 4) {
-            this.data.bookInfo.year = Integer.parseInt(year.substring(0, 4));
-        }
-
-        if (volumeInfo.getCategories() != null) {
-            this.data.bookInfo.tags.addAll(volumeInfo.getCategories());
-        }
-    }
-
-    public Book(String isbn, @NonNull String title, @NonNull List<String> authors, @NonNull String language,
-                String publisher, int year, @NonNull BookConditions conditions, @NonNull List<String> tags,
-                @NonNull Resources resources) {
-        this.bookId = generateBookId();
-        this.data = new Data();
-
-        for (String author : authors) {
-            if (!Utilities.isNullOrWhitespace(author)) {
-                this.data.bookInfo.authors.add(Utilities.trimString(author, resources.getInteger(R.integer.max_length_author)));
-            }
-        }
-
-        this.data.bookInfo.isbn = isbn;
-        this.data.bookInfo.title = Utilities.trimString(title, resources.getInteger(R.integer.max_length_title));
-        this.data.bookInfo.language = Utilities.trimString(language, resources.getInteger(R.integer.max_length_language));
-        this.data.bookInfo.publisher = Utilities.trimString(publisher, resources.getInteger(R.integer.max_length_publisher));
-        this.data.bookInfo.year = year;
-
-        this.data.bookInfo.bookConditions = conditions;
-        for (String tag : tags) {
-            if (!Utilities.isNullOrWhitespace(tag)) {
-                this.data.bookInfo.tags.add(Utilities.trimString(tag, resources.getInteger(R.integer.max_length_tag)));
-            }
-        }
     }
 
     public static ValueEventListener setOnBookLoadedListener(@NonNull String bookId,
@@ -139,9 +76,8 @@ public class Book implements Serializable {
                 .removeEventListener(listener);
     }
 
-    public static FirebaseRecyclerOptions<Book> getBooksByUser(@NonNull String userId) {
+    private static FirebaseRecyclerOptions<Book> getBooksReference(@NonNull DatabaseReference keyQuery) {
 
-        DatabaseReference keyQuery = UserProfile.getOwnedBooksReference(userId);
         DatabaseReference dataRef = FirebaseDatabase.getInstance().getReference()
                 .child(FIREBASE_BOOKS_KEY);
 
@@ -156,13 +92,20 @@ public class Book implements Serializable {
                 .build();
     }
 
-    private static String generateBookId() {
-        return FirebaseDatabase.getInstance().getReference()
-                .child(FIREBASE_BOOKS_KEY).push().getKey();
+    public static FirebaseRecyclerOptions<Book> getOwnedBooksReference(@NonNull String userId) {
+        return getBooksReference(UserProfile.getOwnedBooksReference(userId));
     }
 
-    public static StorageReference getBookPictureReference(@NonNull String ownerId,
-                                                           @NonNull String bookId) {
+    public static FirebaseRecyclerOptions<Book> getBorrowedBooksReference(@NonNull String userId) {
+        return getBooksReference(UserProfile.getBorrowedBooksReference(userId));
+    }
+
+    public static FirebaseRecyclerOptions<Book> getLentBooksReference(@NonNull String userId) {
+        return getBooksReference(UserProfile.getLentBooksReference(userId));
+    }
+
+    private static StorageReference getBookPictureReference(@NonNull String ownerId,
+                                                            @NonNull String bookId) {
         return UserProfile.getStorageFolderReference(ownerId)
                 .child(FIREBASE_STORAGE_BOOKS_FOLDER)
                 .child(bookId)
@@ -221,15 +164,27 @@ public class Book implements Serializable {
         return this.data.uid;
     }
 
+    public boolean isOwnedBook() {
+        return Utilities.equals(this.data.uid, LocalUserProfile.getInstance().getUserId());
+    }
+
     public boolean hasImage() {
         return this.data.bookInfo.hasImage;
     }
 
-    public void setHasImage(boolean hasImage) {
-        this.data.bookInfo.hasImage = hasImage;
+    public boolean isAvailable() {
+        return this.data.flags.available;
     }
 
-    private StorageReference getBookPictureReference() {
+    public boolean isDeletable() {
+        return this.isAvailable() && this.isOwnedBook();
+    }
+
+    public boolean isDeleted() {
+        return this.data.flags.deleted;
+    }
+
+    StorageReference getBookPictureReference() {
         return Book.getBookPictureReference(getOwnerId(), getBookId());
     }
 
@@ -237,7 +192,7 @@ public class Book implements Serializable {
         return this.data.bookInfo.hasImage ? this.getBookPictureReference() : null;
     }
 
-    private StorageReference getBookThumbnailReference() {
+    StorageReference getBookThumbnailReference() {
         return Book.getBookThumbnailReference(getOwnerId(), getBookId());
     }
 
@@ -245,95 +200,63 @@ public class Book implements Serializable {
         return this.data.bookInfo.hasImage ? this.getBookThumbnailReference() : null;
     }
 
-    public Task<?> saveToFirebase(@NonNull LocalUserProfile owner) {
+    public void startOnBookFlagsUpdatedListener(@NonNull OnBookFlagsUpdatedListener listener) {
 
-        this.data.uid = owner.getUserId();
+        stopOnBookFlagsUpdatedListener();
 
-        List<Task<?>> tasks = new ArrayList<>();
+        onBookFlagsUpdatedListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Book.Data.Flags flags = dataSnapshot.getValue(Book.Data.Flags.class);
+                if (flags != null) {
+                    Book.this.data.flags = flags;
+                    listener.onBookFlagsUpdated();
+                }
+            }
 
-        tasks.add(FirebaseDatabase.getInstance().getReference()
-                .child(FIREBASE_BOOKS_KEY)
-                .child(bookId)
-                .setValue(this.data));
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                /* Do nothing */
+            }
+        };
 
-        tasks.add(owner.addBook(this.bookId));
-
-        return Tasks.whenAllSuccess(tasks);
-    }
-
-    public Task<?> savePictureToFirebase(@NonNull UserProfile owner,
-                                         @NonNull ByteArrayOutputStream picture,
-                                         @NonNull ByteArrayOutputStream thumbnail) {
-
-        this.data.uid = owner.getUserId();
-
-        StorageMetadata metadata = new StorageMetadata.Builder()
-                .setContentType(PictureUtilities.IMAGE_CONTENT_TYPE_UPLOAD)
-                .build();
-
-        List<Task<?>> tasks = new ArrayList<>();
-        tasks.add(getBookPictureReference().putBytes(picture.toByteArray(), metadata));
-        tasks.add(getBookThumbnailReference().putBytes(thumbnail.toByteArray(), metadata));
-        return Tasks.whenAllSuccess(tasks);
-    }
-
-    public void deleteFromFirebase(@NonNull LocalUserProfile owner) {
-
-        this.data.deleted = true;
         FirebaseDatabase.getInstance().getReference()
                 .child(FIREBASE_BOOKS_KEY)
-                .child(bookId)
-                .child(FIREBASE_DELETED_BOOK_KEY)
-                .setValue(true);
-
-        owner.removeBook(this.bookId);
+                .child(this.getBookId())
+                .child(FIREBASE_FLAGS_KEY)
+                .addValueEventListener(onBookFlagsUpdatedListener);
     }
 
-    public void saveToAlgolia(@NonNull UserProfile owner,
-                              @NonNull CompletionHandler completionHandler) {
+    public void stopOnBookFlagsUpdatedListener() {
 
-        this.data.uid = owner.getUserId();
-
-        JSONObject object = this.data.bookInfo.toJSON(owner.getUserId(), owner.getLocationAlgolia());
-        if (object != null) {
-            AlgoliaBookIndex.getInstance()
-                    .addObjectAsync(object, bookId, completionHandler);
-        } else {
-            completionHandler.requestCompleted(null, new AlgoliaException(null));
+        if (onBookFlagsUpdatedListener != null) {
+            FirebaseDatabase.getInstance().getReference()
+                    .child(FIREBASE_BOOKS_KEY)
+                    .child(this.getBookId())
+                    .child(FIREBASE_FLAGS_KEY)
+                    .removeEventListener(onBookFlagsUpdatedListener);
+            onBookFlagsUpdatedListener = null;
         }
     }
 
-    public void deleteFromAlgolia(CompletionHandler completionHandler) {
-        AlgoliaBookIndex.getInstance()
-                .deleteObjectAsync(bookId, completionHandler);
-    }
-
-    static class AlgoliaBookIndex {
-        private static Index instance = null;
-
-        static Index getInstance() {
-            if (instance == null) {
-                Client client = new Client(Constants.ALGOLIA_APP_ID, Constants.ALGOLIA_ADD_REMOVE_BOOK_API_KEY);
-                instance = client.getIndex(Constants.ALGOLIA_INDEX_NAME);
-            }
-            return instance;
-        }
+    public interface OnBookFlagsUpdatedListener {
+        void onBookFlagsUpdated();
     }
 
     /* Fields need to be public to enable Firebase to access them */
     @SuppressWarnings({"WeakerAccess", "CanBeFinal"})
     public static class Data implements Serializable {
         public String uid;
-        public boolean deleted;
         public BookInfo bookInfo;
+        public Flags flags;
 
         public Data() {
             this.uid = null;
-            this.deleted = false;
             this.bookInfo = new BookInfo();
+            this.flags = new Flags();
         }
 
-        private static class BookInfo implements Serializable {
+        static class BookInfo implements Serializable {
             public String isbn;
             public String title;
             public List<String> authors;
@@ -355,16 +278,15 @@ public class Book implements Serializable {
                 this.tags = new ArrayList<>();
                 this.hasImage = false;
             }
+        }
 
-            private JSONObject toJSON(@NonNull String ownerId, @NonNull JSONObject geoloc) {
-                try {
-                    JSONObject data = new JSONObject(new GsonBuilder().create().toJson(this));
-                    data.put(ALGOLIA_OWNER_ID_KEY, ownerId);
-                    data.put(ALGOLIA_GEOLOC_KEY, geoloc);
-                    return data;
-                } catch (JSONException e) {
-                    return null;
-                }
+        static class Flags implements Serializable {
+            public boolean available;
+            public boolean deleted;
+
+            public Flags() {
+                this.available = true;
+                this.deleted = false;
             }
         }
     }
@@ -377,7 +299,8 @@ public class Book implements Serializable {
         private static final int FAIR = 20;
         private static final int POOR = 10;
 
-        public int value;
+        public @Conditions
+        int value;
 
         private BookConditions() {
             this(MINT);

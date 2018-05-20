@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 import android.util.Base64;
 
 import com.google.android.gms.location.places.Place;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
@@ -16,7 +18,9 @@ import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import it.polito.mad.mad2018.MAD2018Application;
 import it.polito.mad.mad2018.R;
@@ -29,6 +33,8 @@ public class UserProfile implements Serializable {
     static final String FIREBASE_USERS_KEY = "users";
     static final String FIREBASE_BOOKS_KEY = "books";
     static final String FIREBASE_OWNED_BOOKS_KEY = "ownedBooks";
+    private static final String FIREBASE_BORROWED_BOOKS_KEY = "borrowedBooks";
+    private static final String FIREBASE_LENT_BOOKS_KEY = "lentBooks";
     static final String FIREBASE_CONVERSATIONS_KEY = "conversations";
     static final String FIREBASE_ACTIVE_CONVERSATIONS_KEY = "active";
     static final String FIREBASE_ARCHIVED_CONVERSATIONS_KEY = "archived";
@@ -42,12 +48,19 @@ public class UserProfile implements Serializable {
     static final int PROFILE_PICTURE_QUALITY = 50;
 
     final String uid;
-    final Data data;
+    private transient final Set<OnProfileUpdatedListener> onProfileUpdatedListeners;
+    UserProfile.Data data;
+    private transient ValueEventListener onProfileUpdatedFirebaseListener;
+    private int onProfileUpdatedListenerCount;
 
     public UserProfile(@NonNull String uid, @NonNull Data data) {
         this.uid = uid;
         this.data = data;
         trimFields();
+
+        this.onProfileUpdatedFirebaseListener = null;
+        this.onProfileUpdatedListeners = new HashSet<>();
+        this.onProfileUpdatedListenerCount = 0;
     }
 
     public static ValueEventListener setOnProfileLoadedListener(@NonNull String userId,
@@ -68,12 +81,24 @@ public class UserProfile implements Serializable {
                 .removeEventListener(listener);
     }
 
-    static DatabaseReference getOwnedBooksReference(@NonNull String userId) {
+    private static DatabaseReference getBooksReference(@NonNull String userId, @NonNull String booksKey) {
         return FirebaseDatabase.getInstance().getReference()
                 .child(FIREBASE_USERS_KEY)
                 .child(userId)
                 .child(FIREBASE_BOOKS_KEY)
-                .child(FIREBASE_OWNED_BOOKS_KEY);
+                .child(booksKey);
+    }
+
+    static DatabaseReference getOwnedBooksReference(@NonNull String userId) {
+        return getBooksReference(userId, FIREBASE_OWNED_BOOKS_KEY);
+    }
+
+    static DatabaseReference getBorrowedBooksReference(@NonNull String userId) {
+        return getBooksReference(userId, FIREBASE_BORROWED_BOOKS_KEY);
+    }
+
+    static DatabaseReference getLentBooksReference(@NonNull String userId) {
+        return getBooksReference(userId, FIREBASE_LENT_BOOKS_KEY);
     }
 
     static StorageReference getStorageFolderReference(@NonNull String userId) {
@@ -162,10 +187,72 @@ public class UserProfile implements Serializable {
         return this.data.statistics.toBeReturnedBooks;
     }
 
+    public void addOnProfileUpdatedListener() {
+        this.addOnProfileUpdatedListener(null);
+    }
+
+    public void addOnProfileUpdatedListener(OnProfileUpdatedListener listener) {
+
+        if (onProfileUpdatedListenerCount == 0) {
+            onProfileUpdatedFirebaseListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    UserProfile.Data data = dataSnapshot.getValue(UserProfile.Data.class);
+                    if (data != null) {
+                        UserProfile.this.data = data;
+                        for (OnProfileUpdatedListener listener : onProfileUpdatedListeners) {
+                            listener.onProfileUpdated(UserProfile.this);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    /* Do nothing */
+                }
+            };
+
+            FirebaseDatabase.getInstance().getReference()
+                    .child(FIREBASE_USERS_KEY)
+                    .child(this.getUserId())
+                    .addValueEventListener(onProfileUpdatedFirebaseListener);
+        }
+
+        if (listener != null) {
+            onProfileUpdatedListeners.add(listener);
+        }
+
+        onProfileUpdatedListenerCount++;
+    }
+
+    public void removeOnProfileUpdatedListener() {
+        this.removeOnProfileUpdatedListener(null);
+    }
+
+    public void removeOnProfileUpdatedListener(OnProfileUpdatedListener listener) {
+        onProfileUpdatedListenerCount--;
+
+        if (listener != null) {
+            onProfileUpdatedListeners.remove(listener);
+        }
+
+        if (onProfileUpdatedListenerCount == 0) {
+            FirebaseDatabase.getInstance().getReference()
+                    .child(FIREBASE_USERS_KEY)
+                    .child(this.getUserId())
+                    .removeEventListener(onProfileUpdatedFirebaseListener);
+            onProfileUpdatedFirebaseListener = null;
+        }
+    }
+
     void trimFields() {
         Resources resources = MAD2018Application.getApplicationContextStatic().getResources();
         this.data.profile.username = Utilities.trimString(this.data.profile.username, resources.getInteger(R.integer.max_length_username));
         this.data.profile.biography = Utilities.trimString(this.data.profile.biography, resources.getInteger(R.integer.max_length_biography));
+    }
+
+    public interface OnProfileUpdatedListener {
+        void onProfileUpdated(@NonNull UserProfile profile);
     }
 
     /* Fields need to be public to enable Firebase to access them */
