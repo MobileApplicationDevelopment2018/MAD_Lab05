@@ -181,4 +181,5 @@
     <string name="delete_conversation_message">If you confirm, this conversation will be deleted from your archive forever.</string>
     <string name="hint_rating_comment">Enter comment</string>
     <string name="rating_title">Give your feedback</string>
+    <string name="show_ratings">Show Ratings</string>
 </resources>

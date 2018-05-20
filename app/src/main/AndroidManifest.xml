@@ -76,6 +76,10 @@
             android:name=".barcodereader.BarcodeCaptureActivity"
             android:label="@string/scan_barcode"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".profile.ShowRatingsActivity"
+            android:label="@string/show_ratings"
+            android:theme="@style/AppTheme" />
 
         <service
             android:name=".chat.ChatService"

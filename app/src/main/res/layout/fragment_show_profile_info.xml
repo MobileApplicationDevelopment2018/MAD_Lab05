@@ -53,16 +53,32 @@
                     android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
                     android:textColor="@color/colorText" />
 
-                <RatingBar
-                    android:id="@+id/sp_rating_bar"
-                    style="@style/Base.Widget.AppCompat.RatingBar.Small"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/sp_rating_bar_linear_layout"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
                     android:layout_marginTop="8dp"
-                    android:isIndicator="true"
-                    android:numStars="5"
-                    android:stepSize="0.5" />
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:textColor="@color/fui_linkColor"
+                        android:text="Ranking"/>
+
+                    <RatingBar
+                        android:id="@+id/sp_rating_bar"
+                        style="@style/Base.Widget.AppCompat.RatingBar.Indicator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:isIndicator="true"
+                        android:numStars="5"
+                        android:stepSize="0.5" />
+
+                </LinearLayout>
+
             </LinearLayout>
 
                 <android.support.v7.widget.AppCompatImageButton
