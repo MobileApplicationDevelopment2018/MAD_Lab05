@@ -21,18 +21,13 @@ import android.widget.ImageView;
 import com.algolia.instantsearch.helpers.InstantSearch;
 import com.algolia.instantsearch.helpers.Searcher;
 import com.algolia.instantsearch.ui.views.SearchBox;
-import com.algolia.search.saas.AbstractQuery;
-import com.algolia.search.saas.Query;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.SupportMapFragment;
 
-import java.util.List;
-
 import it.polito.mad.mad2018.R;
 import it.polito.mad.mad2018.data.Book;
 import it.polito.mad.mad2018.data.Constants;
-import it.polito.mad.mad2018.data.LocalUserProfile;
 import it.polito.mad.mad2018.library.BookInfoActivity;
 import it.polito.mad.mad2018.widgets.MapWidget;
 
@@ -66,26 +61,11 @@ public class ExploreFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if(savedInstanceState != null) {
+        if (savedInstanceState != null) {
             searchQuery = savedInstanceState.getString(SEARCH_QUERY_STRING);
         }
-
-        double[] position = LocalUserProfile.getInstance().getCoordinates();
-        searcher.getQuery().setAroundLatLng(new AbstractQuery.LatLng(position[0], position[1]))
-                .setAroundRadius(Query.RADIUS_ALL);
-
         setupGoogleAPI();
-
         filterResultsFragment = FilterResultsFragment.getInstance(searcher);
-        List<Book.BookConditions> bookConditions = Book.BookConditions.values();
-        filterResultsFragment
-                .addSeekBar(Book.ALGOLIA_CONDITIONS_KEY,
-                        FilterResultsFragment.CONDITIONS_NAME,
-                        (double) bookConditions.get(0).value,
-                        (double) bookConditions.get(bookConditions.size() - 1).value,
-                        bookConditions.size() - 1)
-                .addSeekBar(FilterResultsFragment.DISTANCE_NAME,
-                        0.0, 1000000.0, 50);
     }
 
     @Override
@@ -192,7 +172,7 @@ public class ExploreFragment extends Fragment {
         inflater.inflate(R.menu.menu_explore, menu);
         InstantSearch helper = new InstantSearch(searcher);
         helper.registerSearchView(getActivity(), menu, R.id.menu_action_search);
-        if(searchQuery != null) {
+        if (searchQuery != null) {
             helper.search(searchQuery);
         } else {
             helper.search();
@@ -207,7 +187,7 @@ public class ExploreFragment extends Fragment {
 
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
-                if(searchQuery != null) {
+                if (searchQuery != null) {
                     searchBox.post(() -> searchBox.setQuery(searchQuery, false));
                 }
                 helper.setSearchOnEmptyString(true);
