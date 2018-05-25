@@ -198,4 +198,6 @@
     <string name="ask_book">Request book</string>
     <string name="request_for_borrow_from_peer">You\'ve been asked to borrow this book to the user</string>
     <string name="request_for_book">Ask the user for borrowing his book</string>
+    <string name="available">Available</string>
+    <string name="not_available">Not available</string>
 </resources>

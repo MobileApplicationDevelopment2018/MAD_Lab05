@@ -177,4 +177,6 @@
     <string name="ask_book">Richiedi il libro</string>
     <string name="request_for_borrow_from_peer">L\'utente ha richiesto il prestito di questo libro</string>
     <string name="request_for_book">Chiedi all\'utente di prestarti il libro</string>
+    <string name="available">Disponibile</string>
+    <string name="not_available">Non disponibile</string>
 </resources>

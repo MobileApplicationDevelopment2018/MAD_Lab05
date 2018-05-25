@@ -3,6 +3,7 @@ package it.polito.mad.mad2018.library;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -167,6 +168,9 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
     }
 
     private void fillViews(View view) {
+        assert this.getActivity() != null;
+        assert this.getActivity().getResources() != null;
+
         String unknown = getString(R.string.unknown);
 
         TextView isbn = view.findViewById(R.id.fbi_book_isbn);
@@ -176,6 +180,8 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
         TextView editionYear = view.findViewById(R.id.fbi_book_edition_year);
         TextView language = view.findViewById(R.id.fbi_book_language);
         TextView conditions = view.findViewById(R.id.fbi_book_conditions);
+        TextView availability = view.findViewById(R.id.fbi_book_availability);
+        TextView circle = view.findViewById(R.id.fbi_color_circle);
 
         ImageView bookThumbnail = view.findViewById(R.id.fbi_book_picture);
         TagGroup tagGroup = view.findViewById(R.id.fbi_book_tags);
@@ -183,10 +189,26 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
         isbn.setText(book.getIsbn());
         title.setText(book.getTitle());
         authors.setText(book.getAuthors(", "));
+        availability.setText(
+                (book.isAvailable()) ?
+                        this.getActivity().getResources().getString(R.string.available) :
+                        this.getActivity().getResources().getString(R.string.not_available));
         publisher.setText(Utilities.isNullOrWhitespace(book.getPublisher()) ? unknown : book.getPublisher());
         editionYear.setText(String.valueOf(book.getYear()));
         language.setText(Utilities.isNullOrWhitespace(book.getLanguage()) ? unknown : book.getLanguage());
         conditions.setText(book.getConditions());
+
+        availability.setTextColor(
+                (book.isAvailable()) ?
+                        this.getActivity().getResources().getColor(R.color.colorPrimary) :
+                        this.getActivity().getResources().getColor(R.color.colorRed)
+        );
+        circle.getBackground().setColorFilter(
+                (book.isAvailable()) ?
+                        this.getActivity().getResources().getColor(R.color.colorPrimary) :
+                        this.getActivity().getResources().getColor(R.color.colorRed),
+                PorterDuff.Mode.DST_ATOP
+        );
 
         List<String> tags = book.getTags();
         if (tags.size() == 0) {
