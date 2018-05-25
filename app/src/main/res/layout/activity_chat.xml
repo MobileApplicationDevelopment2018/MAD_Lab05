@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".chat.SingleChatActivity">
 
-    <include layout="@layout/toolbar" />
+    <include layout="@layout/toolbar_chat" />
 
     <FrameLayout
         android:id="@+id/sca_main_fragment"

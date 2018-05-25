@@ -172,4 +172,9 @@
     <string name="hint_rating_comment">Inserisci commento</string>
     <string name="rating_title">Lascia il tuo feedback</string>
     <string name="filter_available_books">Mostra solo libri disponibili</string>
+    <string name="accept">Accetta</string>
+    <string name="decline">Rifiuta</string>
+    <string name="ask_book">Richiedi il libro</string>
+    <string name="request_for_borrow_from_peer">L\'utente ha richiesto il prestito di questo libro</string>
+    <string name="request_for_book">Chiedi all\'utente di prestarti il libro</string>
 </resources>

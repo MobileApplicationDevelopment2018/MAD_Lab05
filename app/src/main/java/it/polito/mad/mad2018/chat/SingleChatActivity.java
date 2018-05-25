@@ -4,9 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -58,6 +61,17 @@ public class SingleChatActivity extends AppCompatActivity
             peer = (UserProfile) getIntent().getSerializableExtra(UserProfile.PROFILE_INFO_KEY);
             book = (Book) getIntent().getSerializableExtra(Book.BOOK_KEY);
             conversationId = getIntent().getStringExtra(Conversation.CONVERSATION_ID_KEY);
+        }
+
+        Toolbar popup_toolbar = findViewById(R.id.popup_toolbar); // Extra part of the toolbar for the actions
+        if (!book.isOwnedBook() && conversation.canRequestBorrowing()) { // If I'm not the owner I have to make sure of being able to ask for the book
+            setupToolbarForRequestBook(popup_toolbar);
+        } else {
+            if (book.isOwnedBook() && conversation.isPendingBorrowingRequest()) { // Am I the owner and have I a pending borrowing request?
+                setupToolbarForAnsweringRequest(popup_toolbar);
+            } else {
+                popup_toolbar.setVisibility(View.GONE); // Just hide the extra part
+            }
         }
 
         setTitle(peer != null ? peer.getUsername() : getString(R.string.app_name));
@@ -132,6 +146,52 @@ public class SingleChatActivity extends AppCompatActivity
         unsetOnProfileLoadedListener();
         unsetOnLocalProfileLoadedListener();
         unsetOnBookLoadedListener();
+    }
+
+    private void setupToolbarForAnsweringRequest(Toolbar popup_toolbar) {
+        LinearLayout layout; // For the buttons
+        TextView question; // Questions to be displayed
+
+        layout = popup_toolbar.findViewById(R.id.toolbar_accept_decline_request_layout);
+        question = popup_toolbar.findViewById(R.id.accept_decline_question);
+        question.setText(getResources().getString(R.string.request_for_borrow_from_peer));
+        layout.setVisibility(View.VISIBLE);
+
+        CardView request = popup_toolbar.findViewById(R.id.ask_for_book);
+
+        // Set actions of the button
+        request.setOnClickListener(v -> {
+            if (conversation.canRequestBorrowing()) {
+                conversation.requestBorrowing(book);
+                // TODO: hide toolbar?
+            }
+        });
+
+    }
+
+    private void setupToolbarForRequestBook(Toolbar popup_toolbar) {
+        LinearLayout layout; // For the buttons
+        TextView question; // Questions to be displayed
+
+        popup_toolbar.setVisibility(View.VISIBLE);
+        layout = popup_toolbar.findViewById(R.id.toolbar_request_book_layout);
+        question = popup_toolbar.findViewById(R.id.request_borrowing);
+        question.setText(getResources().getString(R.string.request_for_book));
+        layout.setVisibility(View.VISIBLE);
+
+        CardView accept = popup_toolbar.findViewById(R.id.accept);
+        CardView decline = popup_toolbar.findViewById(R.id.decline);
+
+        // Set actions of the buttons
+        accept.setOnClickListener(v -> {
+            conversation.acceptBorrowingRequest();
+            // TODO: hide toolbar?
+        });
+
+        decline.setOnClickListener(v -> {
+            conversation.rejectBorrowingRequest();
+            // TODO: hide toolbar?
+        });
     }
 
     private void afterLocalProfileLoaded() {

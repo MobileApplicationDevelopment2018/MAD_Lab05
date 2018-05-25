@@ -193,4 +193,9 @@
     <string name="rating_title">Give your feedback</string>
     <string name="show_ratings">Show Ratings</string>
     <string name="filter_available_books">Show only available books</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+    <string name="ask_book">Request book</string>
+    <string name="request_for_borrow_from_peer">You\'ve been asked to borrow this book to the user</string>
+    <string name="request_for_book">Ask the user for borrowing his book</string>
 </resources>
