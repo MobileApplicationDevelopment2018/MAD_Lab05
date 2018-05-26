@@ -159,6 +159,7 @@ exports.onUserRatingAdded = functions.database.ref('/conversations/{cid}/owner/r
             let promises = [];
             promises.push(admin.database().ref('/conversations/' + cid + '/bookId').once('value'));
             promises.push(admin.database().ref('/conversations/' + cid + '/peer/uid').once('value'));
+            promises.push(admin.database().ref('/conversations/' + cid + '/flags/ownerFeedback').set(true));
             return Promise.all(promises).then(results => { return onRatingAdded(results, change.after.val()) });
         });
 
@@ -170,6 +171,7 @@ exports.onPeerRatingAdded = functions.database.ref('/conversations/{cid}/peer/ra
             let promises = [];
             promises.push(admin.database().ref('/conversations/' + cid + '/bookId').once('value'));
             promises.push(admin.database().ref('/conversations/' + cid + '/owner/uid').once('value'));
+            promises.push(admin.database().ref('/conversations/' + cid + '/flags/peerFeedback').set(true));
             return Promise.all(promises).then(results => { return onRatingAdded(results, change.after.val()) });
          });
 
