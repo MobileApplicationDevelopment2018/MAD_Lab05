@@ -13,13 +13,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import it.polito.mad.mad2018.R;
 import it.polito.mad.mad2018.data.Book;
@@ -31,6 +31,7 @@ import it.polito.mad.mad2018.utils.TextWatcherUtilities;
 import it.polito.mad.mad2018.utils.Utilities;
 
 public class SingleChatFragment extends FragmentDialog<SingleChatFragment.DialogID> {
+    private static final String RATING_DIALOG_FRAGMENT_TAG = "rating_dialog_fragment_tag";
 
     private Conversation conversation;
     private UserProfile peer;
@@ -44,6 +45,8 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
     private SingleChatAdapter adapter;
     private Handler handlerUpdateMessageTime;
     private Runnable runnableUpdateMessageTime;
+
+    private Toolbar popup_toolbar;
 
     public SingleChatFragment() { /* Required empty public constructor */ }
 
@@ -123,23 +126,6 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-            /* To be changed */
-            case R.id.sc_request_return:
-                conversation.requestReturn(book);
-                return true;
-            case R.id.sc_confirm_return:
-                this.confirmReturn();
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    @Override
     public void onStart() {
         super.onStart();
 
@@ -195,6 +181,13 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
                 openDialog(SingleChatFragment.DialogID.DIALOG_ARCHIVED, true);
                 conversation.stopOnConversationFlagsUpdatedListener();
             }
+
+            if (conversation.isReturnConfirmed()) {
+                assert getActivity() != null;
+                Toolbar popup_toolbar = getActivity().findViewById(R.id.popup_toolbar); // Extra part of the toolbar for the actions
+
+                setupToolbarForFeedback();
+            }
         });
 
         runnableUpdateMessageTime = () -> {
@@ -207,18 +200,45 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
 
     private void setupToolbar() {
         assert getActivity() != null;
-        Toolbar popup_toolbar = getActivity().findViewById(R.id.popup_toolbar); // Extra part of the toolbar for the actions
+        popup_toolbar = getActivity().findViewById(R.id.popup_toolbar); // Extra part of the toolbar for the actions
 
-        if (!book.isOwnedBook() && conversation.canRequestBorrowing()) { // If I'm not the owner I have to make sure of being able to ask for the book
-            setupToolbarForRequestBook(popup_toolbar);
-        } else if (book.isOwnedBook() && conversation.isPendingBorrowingRequest()) { // Am I the owner and have I a pending borrowing request?
-            setupToolbarForAnsweringRequest(popup_toolbar);
+        if (conversation.canRequestBorrowing()) { // If I'm not the owner I have to make sure of being able to ask for the book
+            setupToolbarForRequestBook();
+        } else if (conversation.canRequestReturn()) {
+            setupToolbarForReturnBook();
+        } else if (conversation.isBookOwner() && (conversation.isPendingReturnRequest() || conversation.isPendingBorrowingRequest())) { // Am I the owner and have I a pending borrowing request?
+            setupToolbarForAnsweringRequest();
         } else {
             popup_toolbar.setVisibility(View.GONE); // Just hide the extra part
         }
     }
 
-    private void setupToolbarForRequestBook(Toolbar popup_toolbar) {
+    public void setupToolbarForReturnBook() {
+        LinearLayout layout; // For the buttons
+        TextView question; // Questions to be displayed
+
+        popup_toolbar.setVisibility(View.VISIBLE);
+        layout = popup_toolbar.findViewById(R.id.toolbar_return_book_layout);
+        question = popup_toolbar.findViewById(R.id.return_question);
+        question.setText(getResources().getString(R.string.return_book));
+        layout.setVisibility(View.VISIBLE);
+
+        CardView accept = popup_toolbar.findViewById(R.id.return_book_cv);
+
+        // Set actions of the buttons
+        accept.setOnClickListener(v -> {
+            if (conversation.canRequestReturn()) {
+                conversation.requestReturn(book);
+                popup_toolbar.setVisibility(View.GONE);
+            } else {
+                Toast.makeText(this.getContext(), getResources().getString(R.string.can_not_return_book), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        popup_toolbar.setVisibility(View.VISIBLE);
+    }
+
+    private void setupToolbarForRequestBook() {
         LinearLayout layout; // For the buttons
         TextView question; // Questions to be displayed
 
@@ -245,39 +265,82 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         });
     }
 
-    private void setupToolbarForAnsweringRequest(Toolbar popup_toolbar) {
+    private void setupToolbarForAnsweringRequest() {
         LinearLayout layout; // For the buttons
         TextView question; // Questions to be displayed
 
         popup_toolbar.setVisibility(View.VISIBLE);
         layout = popup_toolbar.findViewById(R.id.toolbar_accept_decline_request_layout);
-        question = popup_toolbar.findViewById(R.id.accept_decline_question);
-        question.setText(getResources().getString(R.string.request_for_borrow_from_peer));
-        layout.setVisibility(View.VISIBLE);
+        question = popup_toolbar.findViewById(R.id.request_borrowing);
 
+        layout.setVisibility(View.VISIBLE);
+        if (conversation.isPendingReturnRequest()) {
+            question.setText(getResources().getString(R.string.request_for_return_from_peer));
+        } else {
+            question.setText(getResources().getString(R.string.request_for_borrow_from_peer));
+        }
         CardView accept = popup_toolbar.findViewById(R.id.accept);
         CardView decline = popup_toolbar.findViewById(R.id.decline);
 
         // Set actions of the buttons
         accept.setOnClickListener(v -> {
-
-            OwnedBook book = new OwnedBook(this.book);
-            book.updateAlgoliaAvailability(false, (json, ex) -> {
-                if (ex != null) {
-                    openDialog(SingleChatFragment.DialogID.DIALOG_ERROR_PERFORM_ACTION, true);
-                    return;
+            if (conversation.isPendingReturnRequest()) {
+                if (conversation.canConfirmReturnRequest())
+                    conversation.confirmReturn();
+                else {
+                    Toast.makeText(this.getContext(), getResources().getString(R.string.can_not_return_book), Toast.LENGTH_SHORT).show();
                 }
-
-                conversation.acceptBorrowingRequest();
-            });
-
-            this.setupToolbar();
+            } else {
+                if (conversation.canAnswerBorrowingRequest()) {
+                    conversation.acceptBorrowingRequest();
+                } else {
+                    Toast.makeText(this.getContext(), getResources().getString(R.string.can_not_borrowing_request), Toast.LENGTH_SHORT).show();
+                }
+            }
+            popup_toolbar.setVisibility(View.GONE);
         });
 
         decline.setOnClickListener(v -> {
-            conversation.rejectBorrowingRequest();
-            this.setupToolbar();
+            if (conversation.isPendingReturnRequest()) {
+                // Nada
+                //Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
+            } else {
+                if (conversation.canAnswerBorrowingRequest()) {
+                    conversation.rejectBorrowingRequest();
+                    popup_toolbar.setVisibility(View.GONE);
+                } else {
+                    Toast.makeText(this.getContext(), getResources().getString(R.string.can_not_borrowing_request), Toast.LENGTH_SHORT).show();
+                }
+            }
         });
+
+        if (conversation.isPendingReturnRequest())
+            decline.setVisibility(View.GONE);
+
+        popup_toolbar.setVisibility(View.VISIBLE);
+
+    }
+
+    private void setupToolbarForFeedback() {
+        // TODO: check if rating has been left
+        /*if(ratingLeft)
+            return;*/
+        LinearLayout layout; // For the buttons
+        TextView question; // Questions to be displayed
+
+        popup_toolbar.setVisibility(View.VISIBLE);
+        layout = popup_toolbar.findViewById(R.id.toolbar_leave_feedback_layout);
+        layout.setVisibility(View.VISIBLE);
+
+        CardView feedback = popup_toolbar.findViewById(R.id.leave_feedback_cv);
+
+        // Set actions of the button
+        feedback.setOnClickListener(v -> RatingFragment.Factory.newInstance(conversation, this::hideFeedbackToolbar)
+                .show(getChildFragmentManager(), RATING_DIALOG_FRAGMENT_TAG));
+    }
+
+    private void hideFeedbackToolbar() {
+        popup_toolbar.setVisibility(View.GONE);
     }
 
     /* TODO: TO BE MODIFIED */
@@ -292,6 +355,7 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
             conversation.confirmReturn();
         });
     }
+
 
     @Override
     protected void openDialog(@NonNull DialogID dialogId, boolean dialogPersist) {

@@ -26,7 +26,6 @@ public class SingleChatActivity extends AppCompatActivity
         implements ShowProfileFragment.OnShowOwnedBooksClickListener {
 
     private static final String SINGLE_CHAT_FRAGMENT_TAG = "single_chat_fragment_tag";
-    private static final String RATING_DIALOG_FRAGMENT_TAG = "rating_dialog_fragment_tag";
 
     private Conversation conversation;
     private UserProfile peer;
@@ -96,10 +95,6 @@ public class SingleChatActivity extends AppCompatActivity
                 toBookInfo.putExtra(BookInfoFragment.BOOK_SHOW_OWNER_KEY, false);
                 startActivity(toBookInfo);
                 return true;
-
-            case R.id.sc_show_rating_dialog:
-                RatingFragment.Factory.newInstance(conversation)
-                        .show(getSupportFragmentManager(), RATING_DIALOG_FRAGMENT_TAG);
 
             default:
                 return super.onOptionsItemSelected(item);

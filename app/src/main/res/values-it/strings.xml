@@ -184,4 +184,10 @@
     <string name="no_ratings">Nessuna valutazione</string>
     <string name="ratings_title">Le valutazioni di %1$s</string>
     <string name="my_ratings_title">Le mie valutazioni</string>
+
+    <string name="request_for_return_from_peer">Has your book been returned?</string>
+    <string name="can_not_return_book">Non è possibile restituire il libro al momento</string>
+    <string name="can_not_borrowing_request">Non è possibile confermare la richiesta di prestito al momento</string>
+    <string name="leave_feedback">Lascia una valutazione</string>
+    <string name="return_book">Restituisci libro</string>s
 </resources>

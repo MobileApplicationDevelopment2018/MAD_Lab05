@@ -424,6 +424,10 @@ public class Conversation implements Serializable {
                 .setValue(rating);
     }
 
+    public boolean isReturnConfirmed() {
+        return (data.flags.returnState == Data.Flags.ACCEPTED) && (data.flags.borrowingState == Data.Flags.ACCEPTED);
+    }
+
     public interface OnConversationFlagsUpdatedListener {
         void onConversationFlagsChanged();
     }

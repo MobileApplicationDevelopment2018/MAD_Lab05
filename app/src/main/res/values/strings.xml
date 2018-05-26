@@ -205,4 +205,10 @@
     <string name="no_ratings">No ratings yet</string>
     <string name="ratings_title">%1$s\'s ratings</string>
     <string name="my_ratings_title">My ratings</string>
+
+    <string name="request_for_return_from_peer">Has your book been returned?</string>
+    <string name="can_not_return_book">You can not return the book at the moment</string>
+    <string name="can_not_borrowing_request">You can not confirm the request at the moment</string>
+    <string name="leave_feedback">Leave feedback</string>
+    <string name="return_book">Return book</string>
 </resources>
