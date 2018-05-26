@@ -44,6 +44,7 @@ public class Conversation implements Serializable {
     private static final String FIREBASE_FLAG_BORROWING_STATE_KEY = "borrowingState";
     private static final String FIREBASE_FLAG_RETURN_STATE_KEY = "returnState";
     private static final String FIREBASE_CONVERSATION_ORDER_BY_KEY = "timestamp";
+    private static final String FIREBASE_RATING_KEY = "rating";
 
     private final String conversationId;
     private final Conversation.Data data;
@@ -304,6 +305,11 @@ public class Conversation implements Serializable {
         return this.isBookOwner() && isPendingReturnRequest();
     }
 
+    public boolean canUploadRating() {
+        // TODO
+        return true;
+    }
+
     public Task<?> requestBorrowing(@NonNull Book book) {
         if (!this.canRequestBorrowing()) {
             throw new ForbiddenActionException();
@@ -407,6 +413,15 @@ public class Conversation implements Serializable {
                 .getString(R.string.message_request_return_confirm)));
 
         return Tasks.whenAllSuccess(tasks);
+    }
+
+    public Task<?> uploadRating(Rating rating) {
+        return FirebaseDatabase.getInstance().getReference()
+                .child(FIREBASE_CONVERSATIONS_KEY)
+                .child(conversationId)
+                .child(isBookOwner() ? FIREBASE_OWNER_KEY : FIREBASE_PEER_KEY)
+                .child(FIREBASE_RATING_KEY)
+                .setValue(rating);
     }
 
     public interface OnConversationFlagsUpdatedListener {

@@ -111,7 +111,7 @@ exports.onBorrowingStarted = functions.database.ref('/conversations/{cid}/flags/
 
             let promises = [];
 
-            promises.push(admin.database().ref('/books/' + bookId + '/available').set(false));
+            promises.push(admin.database().ref('/books/' + bookId + '/flags/available').set(false));
             promises.push(admin.database().ref('/users/' + userId + '/books/lentBooks/' + bookId).set(peerId));
             promises.push(admin.database().ref('/users/' + peerId + '/books/borrowedBooks/' + bookId).set(userId));
 
@@ -143,13 +143,35 @@ exports.onBorrowingEnded = functions.database.ref('/conversations/{cid}/flags/re
                 const peerId = results[2].val();
 
                 let promises = [];
-                promises.push(admin.database().ref('/books/' + bookId + '/available').set(true));
+                promises.push(admin.database().ref('/books/' + bookId + '/flags/available').set(true));
                 promises.push(admin.database().ref('/users/' + userId + '/books/lentBooks/' + bookId).remove());
                 promises.push(admin.database().ref('/users/' + peerId + '/books/borrowedBooks/' + bookId).remove());
                 promises.push(admin.database().ref('/users/' + peerId + '/statistics/toBeReturnedBooks').transaction(count => { return count - 1; }));
                 return Promise.all(promises);
             });
         });
+
+exports.onUserRatingAdded = functions.database.ref('/conversations/{cid}/owner/rating')
+        .onWrite((change, context) => {
+
+            const cid = context.params.cid;
+
+            let promises = [];
+            promises.push(admin.database().ref('/conversations/' + cid + '/bookId').once('value'));
+            promises.push(admin.database().ref('/conversations/' + cid + '/peer/uid').once('value'));
+            return Promise.all(promises).then(results => { return onRatingAdded(results, change.after.val()) });
+        });
+
+exports.onPeerRatingAdded = functions.database.ref('/conversations/{cid}/peer/rating')
+        .onWrite((change, context) => {
+
+            const cid = context.params.cid;
+
+            let promises = [];
+            promises.push(admin.database().ref('/conversations/' + cid + '/bookId').once('value'));
+            promises.push(admin.database().ref('/conversations/' + cid + '/owner/uid').once('value'));
+            return Promise.all(promises).then(results => { return onRatingAdded(results, change.after.val()) });
+         });
 
 function sendNotifications(cid, uid, rid, message) {
 
@@ -231,5 +253,25 @@ function performDelete(conversations) {
         promises.push(conversation.ref.child('flags/bookDeleted').set(true));
         promises.push(conversation.ref.child('flags/archived').set(true));
     });
+    return Promise.all(promises);
+}
+
+function onRatingAdded(results, rating) {
+
+    const timestamp = Date.now();
+    const bookId = results[0].val();
+    const uid = results[1].val();
+
+    rating['bookId'] = bookId;
+    rating['timestamp'] = timestamp;
+
+    let promises = [];
+
+    promises.push(admin.database().ref('/users/' + uid + '/ratings/' + (-timestamp)).set(rating));
+    promises.push(admin.database().ref('/users/' + uid + '/statistics/ratingTotal')
+        .transaction(total => { return (total || 0) + rating['score']; }));
+    promises.push(admin.database().ref('/users/' + uid + '/statistics/ratingCount')
+        .transaction(count => { return (count || 0) + 1; }));
+
     return Promise.all(promises);
 }

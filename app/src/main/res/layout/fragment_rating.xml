@@ -37,13 +37,14 @@
         android:layout_marginBottom="16dp"
         android:layout_marginTop="8dp"
         android:numStars="5"
+        android:rating="4"
         android:stepSize="0.5" />
 
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:counterEnabled="true"
-        app:counterMaxLength="140"
+        app:counterMaxLength="@integer/max_length_comment"
         app:hintEnabled="false">
 
         <EditText
@@ -52,6 +53,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/hint_rating_comment"
             android:inputType="textMultiLine"
+            android:maxLength="@integer/max_length_comment"
             android:maxLines="5"
             android:padding="12dp"
             android:scrollbars="vertical" />

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -262,7 +261,6 @@ public class ChatAdapter extends FirebaseRecyclerAdapter<Conversation, ChatAdapt
             this.peerName.setText(peer == null ? context.getString(R.string.loading) : peer.getUsername());
             this.bookTitle.setText(book == null ? context.getString(R.string.loading) : book.getTitle());
 
-            Log.d("TAG", "" + conversation.getUnreadMessagesCount());
             if (conversation.getUnreadMessagesCount() != 0) {
                 this.newMessagesCount.setVisibility(View.VISIBLE);
                 this.newMessagesCount.setText(String.valueOf(conversation.getUnreadMessagesCount()));

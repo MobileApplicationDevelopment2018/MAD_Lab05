@@ -10,4 +10,6 @@
     <integer name="max_length_language">30</integer>
     <integer name="max_length_tag">30</integer>
     <integer name="max_length_isbn">13</integer>
+
+    <integer name="max_length_comment">140</integer>
 </resources>

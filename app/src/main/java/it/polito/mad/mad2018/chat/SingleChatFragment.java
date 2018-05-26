@@ -6,8 +6,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import it.polito.mad.mad2018.R;
@@ -91,10 +94,6 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
                 editable -> buttonSend.setEnabled(!Utilities.isNullOrWhitespace(editable.toString()))
         ));
 
-        if (!conversation.isNew()) {
-            setupMessages();
-        }
-
         return view;
     }
 
@@ -104,6 +103,16 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
 
         assert getActivity() != null;
         getActivity().setTitle(peer.getUsername());
+        this.setupToolbar();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+
+        if (getActivity() != null) {
+            getActivity().findViewById(R.id.popup_toolbar).setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -118,15 +127,6 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
 
         switch (item.getItemId()) {
             /* To be changed */
-            case R.id.sc_request_borrowing:
-                this.requestBorrowing();
-                return true;
-            case R.id.sc_accept_borrowing:
-                this.acceptBorrowingRequest();
-                return true;
-            case R.id.sc_reject_borrowing:
-                conversation.rejectBorrowingRequest();
-                return true;
             case R.id.sc_request_return:
                 conversation.requestReturn(book);
                 return true;
@@ -143,8 +143,11 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
     public void onStart() {
         super.onStart();
 
-        if (adapter != null) {
-            adapter.startListening();
+        if (!conversation.isNew()) {
+            setupMessages();
+            if (adapter != null) {
+                adapter.startListening();
+            }
         }
     }
 
@@ -187,6 +190,7 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         editTextMessage.setEnabled(true);
 
         conversation.startOnConversationFlagsUpdatedListener(() -> {
+            this.setupToolbar();
             if (conversation.isArchived()) {
                 openDialog(SingleChatFragment.DialogID.DIALOG_ARCHIVED, true);
                 conversation.stopOnConversationFlagsUpdatedListener();
@@ -201,26 +205,78 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         handlerUpdateMessageTime.postDelayed(runnableUpdateMessageTime, Conversation.UPDATE_TIME);
     }
 
-    /* TODO: TO BE MODIFIED */
-    private void requestBorrowing() {
-        boolean wasNewConversation = conversation.isNew();
-        conversation.requestBorrowing(book);
+    private void setupToolbar() {
+        assert getActivity() != null;
+        Toolbar popup_toolbar = getActivity().findViewById(R.id.popup_toolbar); // Extra part of the toolbar for the actions
 
-        if (wasNewConversation) {
-            setupMessages();
+        if (!book.isOwnedBook() && conversation.canRequestBorrowing()) { // If I'm not the owner I have to make sure of being able to ask for the book
+            setupToolbarForRequestBook(popup_toolbar);
+        } else if (book.isOwnedBook() && conversation.isPendingBorrowingRequest()) { // Am I the owner and have I a pending borrowing request?
+            setupToolbarForAnsweringRequest(popup_toolbar);
+        } else {
+            popup_toolbar.setVisibility(View.GONE); // Just hide the extra part
         }
     }
 
-    /* TODO: TO BE MODIFIED */
-    private void acceptBorrowingRequest() {
-        OwnedBook book = new OwnedBook(this.book);
-        book.updateAlgoliaAvailability(false, (json, ex) -> {
-            if (ex != null) {
-                openDialog(SingleChatFragment.DialogID.DIALOG_ERROR_PERFORM_ACTION, true);
-                return;
-            }
+    private void setupToolbarForRequestBook(Toolbar popup_toolbar) {
+        LinearLayout layout; // For the buttons
+        TextView question; // Questions to be displayed
 
-            conversation.acceptBorrowingRequest();
+        popup_toolbar.setVisibility(View.VISIBLE);
+        layout = popup_toolbar.findViewById(R.id.toolbar_request_book_layout);
+        question = popup_toolbar.findViewById(R.id.request_borrowing);
+        question.setText(getResources().getString(R.string.request_for_book));
+        layout.setVisibility(View.VISIBLE);
+
+        CardView request = popup_toolbar.findViewById(R.id.ask_for_book);
+
+        // Set actions of the button
+        request.setOnClickListener(v -> {
+            if (conversation.canRequestBorrowing()) {
+
+                boolean wasNewConversation = conversation.isNew();
+                conversation.requestBorrowing(book);
+
+                if (wasNewConversation) {
+                    setupMessages();
+                }
+                this.setupToolbar();
+            }
+        });
+    }
+
+    private void setupToolbarForAnsweringRequest(Toolbar popup_toolbar) {
+        LinearLayout layout; // For the buttons
+        TextView question; // Questions to be displayed
+
+        popup_toolbar.setVisibility(View.VISIBLE);
+        layout = popup_toolbar.findViewById(R.id.toolbar_accept_decline_request_layout);
+        question = popup_toolbar.findViewById(R.id.accept_decline_question);
+        question.setText(getResources().getString(R.string.request_for_borrow_from_peer));
+        layout.setVisibility(View.VISIBLE);
+
+        CardView accept = popup_toolbar.findViewById(R.id.accept);
+        CardView decline = popup_toolbar.findViewById(R.id.decline);
+
+        // Set actions of the buttons
+        accept.setOnClickListener(v -> {
+
+            OwnedBook book = new OwnedBook(this.book);
+            book.updateAlgoliaAvailability(false, (json, ex) -> {
+                if (ex != null) {
+                    openDialog(SingleChatFragment.DialogID.DIALOG_ERROR_PERFORM_ACTION, true);
+                    return;
+                }
+
+                conversation.acceptBorrowingRequest();
+            });
+
+            this.setupToolbar();
+        });
+
+        decline.setOnClickListener(v -> {
+            conversation.rejectBorrowingRequest();
+            this.setupToolbar();
         });
     }
 

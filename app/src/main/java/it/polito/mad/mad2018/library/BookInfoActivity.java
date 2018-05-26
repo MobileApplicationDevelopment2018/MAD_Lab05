@@ -1,6 +1,7 @@
 package it.polito.mad.mad2018.library;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -135,7 +136,7 @@ public class BookInfoActivity extends AppCompatActivity
     }
 
     @Override
-    public void OnShowOwnedBooksClick(UserProfile profile) {
+    public void OnShowOwnedBooksClick(@NonNull UserProfile profile) {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.bi_main_fragment, MyBooksFragment.newInstance(profile))
                 .addToBackStack(null)

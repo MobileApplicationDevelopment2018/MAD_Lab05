@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -101,14 +100,11 @@ public class ShowProfileFragment extends Fragment {
         }
 
         //RatingBar indicator
-        final LinearLayout ratingBar = getView().findViewById(R.id.sp_rating_bar_linear_layout);
-        ratingBar.setOnClickListener(v -> showRatings());
-
-    }
-
-    private void showRatings() {
-        Intent toRatings = new Intent(getContext(), ShowRatingsActivity.class);
-        startActivity(toRatings);
+        getView().findViewById(R.id.sp_card_profile).setOnClickListener(v -> {
+            Intent toRatings = new Intent(getContext(), ShowRatingsActivity.class);
+            toRatings.putExtra(UserProfile.PROFILE_INFO_KEY, profile);
+            startActivity(toRatings);
+        });
     }
 
     @Override

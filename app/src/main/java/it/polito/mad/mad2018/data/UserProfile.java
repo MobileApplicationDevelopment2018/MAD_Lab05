@@ -4,6 +4,7 @@ import android.content.res.Resources;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.location.places.Place;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -16,6 +17,7 @@ import com.google.firebase.storage.StorageReference;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,25 +35,24 @@ public class UserProfile implements Serializable {
     static final String FIREBASE_USERS_KEY = "users";
     static final String FIREBASE_BOOKS_KEY = "books";
     static final String FIREBASE_OWNED_BOOKS_KEY = "ownedBooks";
-    private static final String FIREBASE_BORROWED_BOOKS_KEY = "borrowedBooks";
-    private static final String FIREBASE_LENT_BOOKS_KEY = "lentBooks";
     static final String FIREBASE_CONVERSATIONS_KEY = "conversations";
     static final String FIREBASE_ACTIVE_CONVERSATIONS_KEY = "active";
     static final String FIREBASE_ARCHIVED_CONVERSATIONS_KEY = "archived";
-
     static final String FIREBASE_PROFILE_KEY = "profile";
-    private static final String FIREBASE_STORAGE_USERS_FOLDER = "users";
     static final String FIREBASE_STORAGE_IMAGE_NAME = "profile";
-
     static final int PROFILE_PICTURE_SIZE = 1024;
     static final int PROFILE_PICTURE_THUMBNAIL_SIZE = 64;
     static final int PROFILE_PICTURE_QUALITY = 50;
-
+    private static final String FIREBASE_BORROWED_BOOKS_KEY = "borrowedBooks";
+    private static final String FIREBASE_LENT_BOOKS_KEY = "lentBooks";
+    private static final String FIREBASE_RATINGS_KEY = "ratings";
+    private static final String FIREBASE_STORAGE_USERS_FOLDER = "users";
     final String uid;
-    private transient final Set<OnProfileUpdatedListener> onProfileUpdatedListeners;
     UserProfile.Data data;
+
     private transient ValueEventListener onProfileUpdatedFirebaseListener;
-    private int onProfileUpdatedListenerCount;
+    private transient Set<OnProfileUpdatedListener> onProfileUpdatedListeners;
+    private transient int onProfileUpdatedListenerCount;
 
     public UserProfile(@NonNull String uid, @NonNull Data data) {
         this.uid = uid;
@@ -105,6 +106,15 @@ public class UserProfile implements Serializable {
         return FirebaseStorage.getInstance().getReference()
                 .child(FIREBASE_STORAGE_USERS_FOLDER)
                 .child(userId);
+    }
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        this.onProfileUpdatedFirebaseListener = null;
+        this.onProfileUpdatedListeners = new HashSet<>();
+        this.onProfileUpdatedListenerCount = 0;
     }
 
     public String getUserId() {
@@ -168,7 +178,8 @@ public class UserProfile implements Serializable {
     }
 
     public float getRating() {
-        return this.data.statistics.rating;
+        return (this.data.statistics.ratingCount == 0) ? 0
+                : this.data.statistics.ratingTotal / this.data.statistics.ratingCount;
     }
 
     public int getOwnedBooksCount() {
@@ -185,6 +196,17 @@ public class UserProfile implements Serializable {
 
     public int getToBeReturnedBooksCount() {
         return this.data.statistics.toBeReturnedBooks;
+    }
+
+    public FirebaseRecyclerOptions<Rating> getRatingsReferences() {
+        return new FirebaseRecyclerOptions.Builder<Rating>()
+                .setQuery(
+                        FirebaseDatabase.getInstance().getReference()
+                                .child(FIREBASE_USERS_KEY)
+                                .child(getUserId())
+                                .child(FIREBASE_RATINGS_KEY),
+                        Rating.class)
+                .build();
     }
 
     public void addOnProfileUpdatedListener() {
@@ -310,20 +332,23 @@ public class UserProfile implements Serializable {
         }
 
         protected static class Statistics implements Serializable {
-            public float rating;
+            public float ratingTotal;
+            public float ratingCount;
             public int lentBooks;
             public int borrowedBooks;
             public int toBeReturnedBooks;
 
             public Statistics() {
-                this.rating = 0;
+                this.ratingTotal = 0;
+                this.ratingCount = 0;
                 this.lentBooks = 0;
                 this.borrowedBooks = 0;
                 this.toBeReturnedBooks = 0;
             }
 
             public Statistics(@NonNull Statistics other) {
-                this.rating = other.rating;
+                this.ratingTotal = other.ratingTotal;
+                this.ratingCount = other.ratingCount;
                 this.lentBooks = other.lentBooks;
                 this.borrowedBooks = other.borrowedBooks;
                 this.toBeReturnedBooks = other.toBeReturnedBooks;

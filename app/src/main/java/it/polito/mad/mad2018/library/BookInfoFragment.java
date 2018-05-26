@@ -43,7 +43,7 @@ import rm.com.longpresspopup.PopupInflaterListener;
 import rm.com.longpresspopup.PopupStateListener;
 
 public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
-        implements PopupInflaterListener, PopupStateListener {
+        implements PopupInflaterListener, PopupStateListener, Book.OnBookFlagsUpdatedListener {
 
     public final static String BOOK_SHOW_OWNER_KEY = "book_show_owner_key";
     public final static String BOOK_DELETABLE_KEY = "book_deletable_key";
@@ -143,22 +143,21 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
     public void onStart() {
         super.onStart();
         setOnProfileLoadedListener();
+
+        this.onBookFlagsUpdated();
+        book.startOnBookFlagsUpdatedListener(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
 
+        unsetOnProfileLoadedListener();
+        book.stopOnBookFlagsUpdatedListener();
         if (popup != null) {
             popup.unregister();
             popup.dismissNow();
         }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        unsetOnProfileLoadedListener();
     }
 
     @Override
@@ -180,8 +179,6 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
         TextView editionYear = view.findViewById(R.id.fbi_book_edition_year);
         TextView language = view.findViewById(R.id.fbi_book_language);
         TextView conditions = view.findViewById(R.id.fbi_book_conditions);
-        TextView availability = view.findViewById(R.id.fbi_book_availability);
-        TextView circle = view.findViewById(R.id.fbi_color_circle);
 
         ImageView bookThumbnail = view.findViewById(R.id.fbi_book_picture);
         TagGroup tagGroup = view.findViewById(R.id.fbi_book_tags);
@@ -189,26 +186,10 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
         isbn.setText(book.getIsbn());
         title.setText(book.getTitle());
         authors.setText(book.getAuthors(", "));
-        availability.setText(
-                (book.isAvailable()) ?
-                        this.getActivity().getResources().getString(R.string.available) :
-                        this.getActivity().getResources().getString(R.string.not_available));
         publisher.setText(Utilities.isNullOrWhitespace(book.getPublisher()) ? unknown : book.getPublisher());
         editionYear.setText(String.valueOf(book.getYear()));
         language.setText(Utilities.isNullOrWhitespace(book.getLanguage()) ? unknown : book.getLanguage());
         conditions.setText(book.getConditions());
-
-        availability.setTextColor(
-                (book.isAvailable()) ?
-                        this.getActivity().getResources().getColor(R.color.colorPrimary) :
-                        this.getActivity().getResources().getColor(R.color.colorRed)
-        );
-        circle.getBackground().setColorFilter(
-                (book.isAvailable()) ?
-                        this.getActivity().getResources().getColor(R.color.colorPrimary) :
-                        this.getActivity().getResources().getColor(R.color.colorRed),
-                PorterDuff.Mode.DST_ATOP
-        );
 
         List<String> tags = book.getTags();
         if (tags.size() == 0) {
@@ -332,6 +313,30 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
 
     @Override
     public void onPopupDismiss(@Nullable String popupTag) {
+    }
+
+    @Override
+    public void onBookFlagsUpdated() {
+        assert getView() != null;
+
+        View circle = getView().findViewById(R.id.fbi_color_circle);
+        TextView availability = getView().findViewById(R.id.fbi_book_availability);
+
+        availability.setText(
+                (book.isAvailable()) ?
+                        R.string.available :
+                        R.string.not_available);
+
+        availability.setTextColor(
+                (book.isAvailable()) ?
+                        this.getResources().getColor(R.color.colorPrimary) :
+                        this.getResources().getColor(R.color.colorRed)
+        );
+        circle.getBackground().setColorFilter(
+                (book.isAvailable()) ?
+                        this.getResources().getColor(R.color.colorPrimary) :
+                        this.getResources().getColor(R.color.colorRed),
+                PorterDuff.Mode.SRC_ATOP);
     }
 
     public enum DialogID {

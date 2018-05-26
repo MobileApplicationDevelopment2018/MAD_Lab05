@@ -7,26 +7,20 @@ import android.support.v7.app.AlertDialog
 import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.RatingBar
-import com.google.firebase.database.FirebaseDatabase
 import it.polito.mad.mad2018.R
-
-//import kotlinx.android.synthetic.main.fragment_rating.*
+import it.polito.mad.mad2018.data.Conversation
+import it.polito.mad.mad2018.data.Rating
 
 class RatingFragment : DialogFragment() {
 
-    private val FIREBASE_CONVERSATIONS_KEY = "conversations"
-    private val FIREBASE_OWNER_KEY = "owner"
-    private val FIREBASE_PEER_KEY = "peer"
-    private val FIREBASE_RATING_KEY = "rating"
-
-    private lateinit var conversationId: String
-    private var isOwner: Boolean = false
+    private lateinit var conversation: Conversation
 
     companion object Factory {
-        fun newInstance(isOwner: Boolean, conversationId: String): RatingFragment {
+        fun newInstance(conversation: Conversation): RatingFragment {
             val ratingFragment = RatingFragment()
-            ratingFragment.isOwner = isOwner
-            ratingFragment.conversationId = conversationId
+            ratingFragment.arguments = Bundle().apply {
+                putSerializable(Conversation.CONVERSATION_KEY, conversation)
+            }
             return ratingFragment
         }
     }
@@ -34,32 +28,26 @@ class RatingFragment : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         super.onCreateDialog(savedInstanceState)
 
+        conversation = arguments!!.getSerializable(Conversation.CONVERSATION_KEY) as Conversation
+
         val builder: AlertDialog.Builder = AlertDialog.Builder(context!!)
         val inflater: LayoutInflater = activity!!.layoutInflater
 
         val view = inflater.inflate(R.layout.fragment_rating, null)
 
         builder.setView(view)
-        builder.setPositiveButton("Rate", { dialog, _ ->
+        builder.setPositiveButton(R.string.rate, { dialog, _ ->
             uploadRating()
             dialog.dismiss()
         })
-        builder.setNegativeButton("Cancel", { dialog, _ -> dialog.dismiss() })
+        builder.setNegativeButton(android.R.string.cancel, { dialog, _ -> dialog.dismiss() })
 
         return builder.create()
     }
 
     private fun uploadRating() {
-
         val ratingBar = dialog.findViewById<RatingBar>(R.id.rating_bar)
         val ratingComment = dialog.findViewById<EditText>(R.id.rating_comment)
-
-        FirebaseDatabase.getInstance().reference.child(FIREBASE_CONVERSATIONS_KEY)
-                .child(conversationId)
-                .child(if (isOwner) FIREBASE_OWNER_KEY else FIREBASE_PEER_KEY)
-                .child(FIREBASE_RATING_KEY)
-                .setValue(Rating(ratingBar.rating, ratingComment.text.toString()))
+        conversation.uploadRating(Rating(ratingBar.rating, ratingComment.text.toString()))
     }
-
-    class Rating(val score: Float, val comment: String)
 }
