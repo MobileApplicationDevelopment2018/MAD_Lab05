@@ -88,8 +88,9 @@ public class ExploreFragment extends Fragment {
                 assert getActivity() != null;
                 Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
                 MenuItem icon = toolbar.getMenu().findItem(R.id.menu_action_map);
-                if (icon == null)
+                if (icon == null) {
                     return;
+                }
 
                 icon.setIcon((pager.getCurrentItem() == MAP_ID) ?
                         R.drawable.ic_format_list_bulleted_white_24dp : R.drawable.ic_location_on_white_24dp);
@@ -150,11 +151,11 @@ public class ExploreFragment extends Fragment {
     }
 
     @Override
-    public void onDetach() {
+    public void onDestroyView() {
         if (appBarLayout != null) {
             appBarLayout.removeView(algoliaLogoLayout);
         }
-        super.onDetach();
+        super.onDestroyView();
     }
 
     @Override
@@ -206,11 +207,11 @@ public class ExploreFragment extends Fragment {
         appBarLayout.addView(algoliaLogoLayout);
 
         if (getActivity() != null) {
-            MenuItem icon = ((Toolbar) getActivity().findViewById(R.id.toolbar)).getMenu()
-                    .findItem(R.id.menu_action_map);
+            MenuItem icon = menu.findItem(R.id.menu_action_map);
 
-            if (icon != null)
+            if (icon != null) {
                 icon.setIcon((pager.getCurrentItem() == MAP_ID) ? R.drawable.ic_format_list_bulleted_white_24dp : R.drawable.ic_location_on_white_24dp);
+            }
         }
 
         super.onCreateOptionsMenu(menu, inflater);
@@ -223,10 +224,11 @@ public class ExploreFragment extends Fragment {
                 filterResultsFragment.show(getChildFragmentManager(), FilterResultsFragment.TAG);
                 return true;
             case R.id.menu_action_map:
-                if (pager.getCurrentItem() == 0)
+                if (pager.getCurrentItem() == 0) {
                     showMap();
-                else
+                } else {
                     hideMap();
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -240,11 +242,8 @@ public class ExploreFragment extends Fragment {
     }
 
     public void onBackPressed() {
-        if (pager.getCurrentItem() == 0)
-            pager.setCurrentItem(MAP_ID);
-        else
-            pager.setCurrentItem(LIST_ID);
-
+        int item = pager.getCurrentItem() == 0 ? MAP_ID : LIST_ID;
+        pager.setCurrentItem(item);
     }
 
     private void setupGoogleAPI() {

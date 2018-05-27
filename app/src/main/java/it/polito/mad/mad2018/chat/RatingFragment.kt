@@ -12,10 +12,14 @@ import it.polito.mad.mad2018.data.Conversation
 import it.polito.mad.mad2018.data.Rating
 
 class RatingFragment : DialogFragment() {
+
     private lateinit var conversation: Conversation
     lateinit var feedbackListener: FeedbackListener
 
     companion object Factory {
+
+        const val TAG:String = "RatingFragment"
+
         fun newInstance(conversation: Conversation, feedbackListener: FeedbackListener): RatingFragment {
             val ratingFragment = RatingFragment()
             ratingFragment.feedbackListener = feedbackListener

@@ -126,8 +126,8 @@ public class ShowProfileFragment extends Fragment {
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onDestroyView() {
+        super.onDestroyView();
         this.onShowOwnedBooksClickListener = null;
     }
 

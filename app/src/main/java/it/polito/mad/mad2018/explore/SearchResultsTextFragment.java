@@ -57,6 +57,17 @@ public class SearchResultsTextFragment extends Fragment
         }
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (searcher != null) {
+            searcher.unregisterResultListener(this);
+            searcher.unregisterErrorListener(this);
+        }
+
+    }
+
     public void setSearcher(@NonNull Searcher searcher) {
         this.searcher = searcher;
     }

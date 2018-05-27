@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -31,7 +32,6 @@ import it.polito.mad.mad2018.utils.TextWatcherUtilities;
 import it.polito.mad.mad2018.utils.Utilities;
 
 public class SingleChatFragment extends FragmentDialog<SingleChatFragment.DialogID> {
-    private static final String RATING_DIALOG_FRAGMENT_TAG = "rating_dialog_fragment_tag";
 
     private Conversation conversation;
     private UserProfile peer;
@@ -184,8 +184,6 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
 
             if (conversation.isReturnConfirmed()) {
                 assert getActivity() != null;
-                Toolbar popup_toolbar = getActivity().findViewById(R.id.popup_toolbar); // Extra part of the toolbar for the actions
-
                 setupToolbarForFeedback();
             }
         });
@@ -301,10 +299,7 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         });
 
         decline.setOnClickListener(v -> {
-            if (conversation.isPendingReturnRequest()) {
-                // Nada
-                //Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
-            } else {
+            if (!conversation.isPendingReturnRequest()) {
                 if (conversation.canAnswerBorrowingRequest()) {
                     conversation.rejectBorrowingRequest();
                     popup_toolbar.setVisibility(View.GONE);
@@ -335,8 +330,12 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         CardView feedback = popup_toolbar.findViewById(R.id.leave_feedback_cv);
 
         // Set actions of the button
-        feedback.setOnClickListener(v -> RatingFragment.Factory.newInstance(conversation, this::hideFeedbackToolbar)
-                .show(getChildFragmentManager(), RATING_DIALOG_FRAGMENT_TAG));
+        RatingFragment ratingFragmentInstance = (RatingFragment) getChildFragmentManager().findFragmentByTag(RatingFragment.TAG);
+        if (ratingFragmentInstance == null) {
+            ratingFragmentInstance = RatingFragment.Factory.newInstance(conversation, this::hideFeedbackToolbar);
+        }
+        final RatingFragment ratingFragment = ratingFragmentInstance;
+        feedback.setOnClickListener(v -> ratingFragment.show(getChildFragmentManager(), RatingFragment.TAG));
     }
 
     private void hideFeedbackToolbar() {

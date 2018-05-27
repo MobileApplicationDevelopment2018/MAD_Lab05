@@ -55,11 +55,11 @@ public class MyChatsFragment extends Fragment {
     }
 
     @Override
-    public void onDetach() {
+    public void onDestroyView() {
         if (appBarLayout != null) {
             appBarLayout.removeView(tabLayout);
         }
-        super.onDetach();
+        super.onDestroyView();
     }
 
     private void setupViewPager(ViewPager viewPager) {

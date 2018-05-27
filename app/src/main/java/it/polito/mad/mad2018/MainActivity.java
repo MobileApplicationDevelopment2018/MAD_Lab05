@@ -13,6 +13,8 @@ import android.support.annotation.StringRes;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -58,7 +60,6 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
     private static final int RC_EDIT_PROFILE = 5;
     private static final int RC_EDIT_PROFILE_WELCOME = 6;
 
-    private static final String FRAGMENT_TAG = "main_fragment";
     private static final String PREFERENCES_FIRST_TIME = "preferences_first_time";
 
     private FirebaseAuth firebaseAuth;
@@ -137,7 +138,7 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            Fragment fragment = getSupportFragmentManager().findFragmentByTag(FRAGMENT_TAG);
+            Fragment fragment = getCurrentFragment();
             if (fragment instanceof ExploreFragment) {
                 if (((ExploreFragment) fragment).getCurrentDisplayedFragment() == 0) {
                     super.onBackPressed();
@@ -377,26 +378,38 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
     }
 
     private Fragment getCurrentFragment() {
-        return getSupportFragmentManager()
-                .findFragmentByTag(FRAGMENT_TAG);
+        return getSupportFragmentManager().findFragmentById(R.id.content_frame);
     }
 
     private void replaceFragment(@NonNull Fragment instance) {
         replaceFragment(instance, false);
     }
 
-    private void replaceFragment(@NonNull Fragment instance, boolean force) {
+    private void replaceFragment(@NonNull Fragment newInstance, boolean force) {
 
-        Fragment oldInstance = getCurrentFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
 
-        if (force || oldInstance == null || !oldInstance.getClass().equals(instance.getClass())) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.content_frame, instance, FRAGMENT_TAG)
-                    .commit();
+        Fragment oldInstance = fragmentManager.findFragmentByTag(newInstance.getClass().getSimpleName());
+        Fragment currentInstance = getCurrentFragment();
 
-            hideSoftKeyboard();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        if (currentInstance != null && !currentInstance.isDetached() && !currentInstance.getClass().equals(newInstance.getClass())) {
+            fragmentTransaction.detach(currentInstance);
         }
+
+        if (oldInstance == null || force) {
+            if (oldInstance != null) {
+                fragmentTransaction.remove(oldInstance);
+            }
+            fragmentTransaction.add(R.id.content_frame, newInstance, newInstance.getClass().getSimpleName());
+        } else if (currentInstance == null || currentInstance.isDetached() || !currentInstance.getClass().equals(newInstance.getClass())) {
+            fragmentTransaction.attach(oldInstance);
+        }
+
+        fragmentTransaction.commit();
+
+        hideSoftKeyboard();
     }
 
     private void removeCurrentFragment() {
