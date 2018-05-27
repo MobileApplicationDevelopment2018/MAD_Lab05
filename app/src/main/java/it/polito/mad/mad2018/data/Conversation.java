@@ -306,8 +306,8 @@ public class Conversation implements Serializable {
     }
 
     public boolean canUploadRating() {
-        // TODO
-        return true;
+        return data.flags.returnState == Data.Flags.ACCEPTED &&
+                !(isBookOwner() ? this.data.flags.ownerFeedback : this.data.flags.peerFeedback);
     }
 
     public Task<?> requestBorrowing(@NonNull Book book) {
@@ -416,16 +416,18 @@ public class Conversation implements Serializable {
     }
 
     public Task<?> uploadRating(Rating rating) {
+        if (isBookOwner()) {
+            this.data.flags.ownerFeedback = true;
+        } else {
+            this.data.flags.peerFeedback = true;
+        }
+
         return FirebaseDatabase.getInstance().getReference()
                 .child(FIREBASE_CONVERSATIONS_KEY)
                 .child(conversationId)
                 .child(isBookOwner() ? FIREBASE_OWNER_KEY : FIREBASE_PEER_KEY)
                 .child(FIREBASE_RATING_KEY)
                 .setValue(rating);
-    }
-
-    public boolean isReturnConfirmed() {
-        return (data.flags.returnState == Data.Flags.ACCEPTED) && (data.flags.borrowingState == Data.Flags.ACCEPTED);
     }
 
     public interface OnConversationFlagsUpdatedListener {
@@ -491,6 +493,8 @@ public class Conversation implements Serializable {
             int borrowingState;
             public @State
             int returnState;
+            public boolean ownerFeedback;
+            public boolean peerFeedback;
 
             public Flags() {
                 this.archived = false;
