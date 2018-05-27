@@ -18,6 +18,8 @@ public class SingleChatAdapter extends FirebaseRecyclerAdapter<Conversation.Mess
 
     private final static int LAYOUT_MESSAGE_RIGHT = 0;
     private final static int LAYOUT_MESSAGE_LEFT = 1;
+    private final static int LAYOUT_MESSAGE_SPECIAL = 2;
+
 
     private final OnItemCountChangedListener onItemCountChangedListener;
     private final ObservableSnapshotArray<Conversation.Message> conversation;
@@ -34,9 +36,11 @@ public class SingleChatAdapter extends FirebaseRecyclerAdapter<Conversation.Mess
     @Override
     public ChatHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate((viewType == LAYOUT_MESSAGE_RIGHT)
+                .inflate((viewType == LAYOUT_MESSAGE_SPECIAL
+                                ? R.layout.item_message_special
+                                : viewType == LAYOUT_MESSAGE_RIGHT
                                 ? R.layout.item_message_right
-                                : R.layout.item_message_left
+                                : R.layout.item_message_left)
                         , parent, false);
         return new SingleChatAdapter.ChatHolder(view);
     }
@@ -48,8 +52,10 @@ public class SingleChatAdapter extends FirebaseRecyclerAdapter<Conversation.Mess
 
     @Override
     public int getItemViewType(int position) {
-        return this.conversation.get(position).isRecipient()
-                ? LAYOUT_MESSAGE_LEFT : LAYOUT_MESSAGE_RIGHT;
+        return this.conversation.get(position).isSpecial() ?
+                LAYOUT_MESSAGE_SPECIAL :
+                this.conversation.get(position).isRecipient()
+                        ? LAYOUT_MESSAGE_LEFT : LAYOUT_MESSAGE_RIGHT;
     }
 
     @Override

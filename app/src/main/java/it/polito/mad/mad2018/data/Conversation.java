@@ -184,7 +184,7 @@ public class Conversation implements Serializable {
         return this.data.flags.archived;
     }
 
-    public boolean isBookOwner() {
+    private boolean isBookOwner() {
         return LocalUserProfile.isLocal(this.data.owner.uid);
     }
 
@@ -224,10 +224,11 @@ public class Conversation implements Serializable {
         return new Message(this.data.messages.get(last));
     }
 
-    public Task<?> sendMessage(@NonNull String text) {
+    private Task<?> sendMessage(@NonNull String text, boolean special) {
         Data.Message message = new Data.Message();
         message.recipient = getPeerUserId();
         message.text = text;
+        message.special = special;
 
         List<Task<?>> tasks = new ArrayList<>();
         DatabaseReference conversationReference = FirebaseDatabase.getInstance().getReference()
@@ -248,11 +249,11 @@ public class Conversation implements Serializable {
         return Tasks.whenAllSuccess(tasks);
     }
 
-    public Task<?> archiveConversation() {
-        if (!this.isArchivable()) {
-            throw new ForbiddenActionException();
-        }
+    public Task<?> sendMessage(@NonNull String text) {
+        return sendMessage(text, false);
+    }
 
+    public Task<?> archiveConversation() {
         this.data.flags.archived = true;
 
         List<Task<?>> tasks = new ArrayList<>();
@@ -281,12 +282,12 @@ public class Conversation implements Serializable {
                 this.data.flags.borrowingState == Data.Flags.NOT_REQUESTED;
     }
 
-    public boolean isPendingBorrowingRequest() {
+    private boolean isPendingBorrowingRequest() {
         return !this.isArchived() && this.data.flags.borrowingState == Data.Flags.REQUESTED;
     }
 
-    public boolean canAnswerBorrowingRequest() {
-        return this.isBookOwner() && this.isPendingBorrowingRequest();
+    public boolean canAnswerBorrowingRequest(@NonNull Book book) {
+        return this.isBookOwner() && this.isPendingBorrowingRequest() && book.isAvailable();
     }
 
     public boolean canRequestReturn() {
@@ -295,7 +296,7 @@ public class Conversation implements Serializable {
                 this.data.flags.returnState == Data.Flags.NOT_REQUESTED;
     }
 
-    public boolean isPendingReturnRequest() {
+    private boolean isPendingReturnRequest() {
         return !this.isArchived() &&
                 this.data.flags.borrowingState == Data.Flags.ACCEPTED &&
                 this.data.flags.returnState == Data.Flags.REQUESTED;
@@ -311,10 +312,6 @@ public class Conversation implements Serializable {
     }
 
     public Task<?> requestBorrowing(@NonNull Book book) {
-        if (!this.canRequestBorrowing()) {
-            throw new ForbiddenActionException();
-        }
-
         this.data.flags.borrowingState = Data.Flags.REQUESTED;
         List<Task<?>> tasks = new ArrayList<>();
 
@@ -326,37 +323,25 @@ public class Conversation implements Serializable {
                 .setValue(this.data.flags.borrowingState));
 
         tasks.add(sendMessage(MAD2018Application.getApplicationContextStatic()
-                .getString(R.string.message_request_borrowing, book.getTitle())));
+                .getString(R.string.message_request_borrowing, book.getTitle()), true));
 
         return Tasks.whenAllSuccess(tasks);
     }
 
     public Task<?> acceptBorrowingRequest() {
-        if (!this.canAnswerBorrowingRequest()) {
-            throw new ForbiddenActionException();
-        }
-
         this.data.flags.borrowingState = Data.Flags.ACCEPTED;
-        List<Task<?>> tasks = new ArrayList<>();
 
-        tasks.add(FirebaseDatabase.getInstance().getReference()
+        return FirebaseDatabase.getInstance().getReference()
                 .child(FIREBASE_CONVERSATIONS_KEY)
                 .child(conversationId)
                 .child(FIREBASE_FLAGS_KEY)
                 .child(FIREBASE_FLAG_BORROWING_STATE_KEY)
-                .setValue(this.data.flags.borrowingState));
+                .setValue(this.data.flags.borrowingState);
 
-        tasks.add(sendMessage(MAD2018Application.getApplicationContextStatic()
-                .getString(R.string.message_borrowing_request_accept)));
-
-        return Tasks.whenAllSuccess(tasks);
+        // The message is sent through the cloud functions to reduce the possibility of race conditions
     }
 
     public Task<?> rejectBorrowingRequest() {
-        if (!this.canAnswerBorrowingRequest()) {
-            throw new ForbiddenActionException();
-        }
-
         this.data.flags.borrowingState = Data.Flags.NOT_REQUESTED;
         List<Task<?>> tasks = new ArrayList<>();
 
@@ -368,16 +353,12 @@ public class Conversation implements Serializable {
                 .setValue(this.data.flags.borrowingState));
 
         tasks.add(sendMessage(MAD2018Application.getApplicationContextStatic()
-                .getString(R.string.message_borrowing_request_reject)));
+                .getString(R.string.message_borrowing_request_reject), true));
 
         return Tasks.whenAllSuccess(tasks);
     }
 
     public Task<?> requestReturn(@NonNull Book book) {
-        if (!this.canRequestReturn()) {
-            throw new ForbiddenActionException();
-        }
-
         this.data.flags.returnState = Data.Flags.REQUESTED;
         List<Task<?>> tasks = new ArrayList<>();
 
@@ -389,16 +370,12 @@ public class Conversation implements Serializable {
                 .setValue(this.data.flags.returnState));
 
         tasks.add(sendMessage(MAD2018Application.getApplicationContextStatic()
-                .getString(R.string.message_request_return, book.getTitle())));
+                .getString(R.string.message_request_return, book.getTitle()), true));
 
         return Tasks.whenAllSuccess(tasks);
     }
 
     public Task<?> confirmReturn() {
-        if (!this.canConfirmReturnRequest()) {
-            throw new ForbiddenActionException();
-        }
-
         this.data.flags.returnState = Data.Flags.ACCEPTED;
         List<Task<?>> tasks = new ArrayList<>();
 
@@ -410,7 +387,7 @@ public class Conversation implements Serializable {
                 .setValue(this.data.flags.returnState));
 
         tasks.add(sendMessage(MAD2018Application.getApplicationContextStatic()
-                .getString(R.string.message_request_return_confirm)));
+                .getString(R.string.message_request_return_confirm), true));
 
         return Tasks.whenAllSuccess(tasks);
     }
@@ -449,6 +426,10 @@ public class Conversation implements Serializable {
             return Utilities.equals(message.recipient, localUserId);
         }
 
+        public boolean isSpecial() {
+            return message.special;
+        }
+
         public String getText() {
             return message.text;
         }
@@ -471,7 +452,7 @@ public class Conversation implements Serializable {
         public User owner;
         public User peer;
         public Conversation.Data.Flags flags;
-
+        public String language;
         public Map<String, Message> messages;
 
         public Data() {
@@ -479,6 +460,8 @@ public class Conversation implements Serializable {
             this.owner = new User();
             this.peer = new User();
             this.flags = new Conversation.Data.Flags();
+            this.language = MAD2018Application.getApplicationContextStatic()
+                    .getResources().getConfiguration().locale.getLanguage();
             this.messages = new HashMap<>();
         }
 
@@ -513,11 +496,13 @@ public class Conversation implements Serializable {
             public String recipient;
             public String text;
             public Object timestamp;
+            public boolean special;
 
             public Message() {
                 this.recipient = null;
                 this.text = null;
                 this.timestamp = ServerValue.TIMESTAMP;
+                this.special = false;
             }
 
             @Exclude
@@ -537,8 +522,5 @@ public class Conversation implements Serializable {
                 this.unreadMessages = 0;
             }
         }
-    }
-
-    private static class ForbiddenActionException extends RuntimeException {
     }
 }

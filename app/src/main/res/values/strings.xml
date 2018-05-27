@@ -182,7 +182,6 @@
     <string name="delete_conversation">Delete the conversation?</string>
     <string name="delete_conversation_message">If you confirm, this conversation will be deleted from your archive forever.</string>
     <string name="message_request_borrowing">I would like to borrow your book titled \'%1$s\'.</string>
-    <string name="message_borrowing_request_accept">Your borrowing request has been accepted!</string>
     <string name="message_borrowing_request_reject">Your borrowing request has been rejected!</string>
     <string name="message_request_return">I would like to return you the book titled \'%1$s\'.</string>
     <string name="message_request_return_confirm">The borrowing concluded correctly. Thank you!.</string>

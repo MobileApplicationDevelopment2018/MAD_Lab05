@@ -9,37 +9,39 @@ const MAX_BOOK_TITLE_LEN = 64;
 exports.onNewMessage = functions.database.ref('/conversations/{cid}/messages/{mid}')
     .onCreate((snapshot, context) => {
         const cid = context.params.cid;
-        const uid = context.auth.uid;
         const rid = snapshot.child('recipient').val();
         const timestamp = snapshot.child('timestamp').val() * (-1);
 
-        let promises = [];
+        function performActions(result) {
 
-        function updateUnreadMessages(result) {
-            if (result.child('uid').val() === rid) {
-                return result.child('unreadMessages').ref.transaction(count => {
+            const uid = result.child('uid').val();
+
+            let promises = [];
+            promises.push(admin.database().ref('/users/' + uid + '/conversations/active/' + cid + '/timestamp').set(timestamp));
+
+            if (uid === rid) {
+                promises.push(result.child('unreadMessages').ref.transaction(count => {
                     return (count || 0) + 1;
-                });
+                }));
+            } else {
+                let message = snapshot.child('text').val();
+                if (message.length > MAX_NOTIFICATION_LEN) {
+                    message = message.substring(0, MAX_NOTIFICATION_LEN - 3) + '...';
+                }
+                promises.push(sendNotifications(cid, uid, rid, message));
             }
 
-            return true;
+            return Promise.all(promises);
         }
+
+        let promises = [];
 
         promises.push(admin.database().ref('/conversations/' + cid + '/owner').once('value').then(result => {
-            return updateUnreadMessages(result);
+            return performActions(result);
         }));
         promises.push(admin.database().ref('/conversations/' + cid + '/peer').once('value').then(result => {
-            return updateUnreadMessages(result);
+            return performActions(result);
         }));
-
-        promises.push(admin.database().ref('/users/' + uid + '/conversations/active/' + cid + '/timestamp').set(timestamp));
-        promises.push(admin.database().ref('/users/' + rid + '/conversations/active/' + cid + '/timestamp').set(timestamp));
-
-        let message  = snapshot.child('text').val();
-        if (message.length > MAX_NOTIFICATION_LEN) {
-            message = message.substring(0, MAX_NOTIFICATION_LEN - 3) + '...';
-        }
-        promises.push(sendNotifications(cid, uid, rid, message));
 
         return Promise.all(promises);
     });
@@ -90,40 +92,51 @@ exports.onBookDeleted = functions.database.ref('/books/{bid}/flags/deleted')
         })
     });
 
-exports.onBorrowingStarted = functions.database.ref('/conversations/{cid}/flags/borrowingState')
+exports.onBorrowingStateChanged = functions.database.ref('/conversations/{cid}/flags/borrowingState')
     .onWrite((change, context) => {
 
-        if (change.after.val() !== 3) {
-            return true;
+        const cid = context.params.cid;
+
+        if (change.after.val() === 2) {
+            return admin.database().ref('/conversations/' + cid + '/bookId').once('value').then(bookId => {
+                return admin.database().ref('/books/' + bookId.val() + '/flags/available').once('value').then(result => {
+                    return result.val() === false ? sendMessage(cid, 'peer', 'bookNotAvailable') : true;
+                });
+            });
         }
 
-        const cid = context.params.cid;
-        let promises = [];
-
-        promises.push(admin.database().ref('/conversations/' + cid + '/bookId').once('value'));
-        promises.push(admin.database().ref('/conversations/' + cid + '/owner/uid').once('value'));
-        promises.push(admin.database().ref('/conversations/' + cid + '/peer/uid').once('value'));
-
-        return Promise.all(promises).then(results => {
-            const bookId = results[0].val();
-            const userId = results[1].val();
-            const peerId = results[2].val();
-
+        if (change.after.val() === 3) {
             let promises = [];
 
-            promises.push(admin.database().ref('/books/' + bookId + '/flags/available').set(false));
-            promises.push(admin.database().ref('/users/' + userId + '/books/lentBooks/' + bookId).set(peerId));
-            promises.push(admin.database().ref('/users/' + peerId + '/books/borrowedBooks/' + bookId).set(userId));
+            promises.push(admin.database().ref('/conversations/' + cid + '/bookId').once('value'));
+            promises.push(admin.database().ref('/conversations/' + cid + '/owner/uid').once('value'));
+            promises.push(admin.database().ref('/conversations/' + cid + '/peer/uid').once('value'));
 
-            promises.push(admin.database().ref('/users/' + userId + '/statistics/lentBooks').transaction(count => { return (count || 0) + 1; }));
-            promises.push(admin.database().ref('/users/' + peerId + '/statistics/borrowedBooks').transaction(count => { return (count || 0) + 1; }));
-            promises.push(admin.database().ref('/users/' + peerId + '/statistics/toBeReturnedBooks').transaction(count => { return (count || 0) + 1; }));
+            return Promise.all(promises).then(results => {
+                const bookId = results[0].val();
+                const userId = results[1].val();
+                const peerId = results[2].val();
 
-            return Promise.all(promises);
-        });
+                let promises = [];
+
+                promises.push(sendMessage(cid, 'peer', 'borrowingRequestAccepted'));
+
+                promises.push(admin.database().ref('/books/' + bookId + '/flags/available').set(false));
+                promises.push(admin.database().ref('/users/' + userId + '/books/lentBooks/' + bookId).set(peerId));
+                promises.push(admin.database().ref('/users/' + peerId + '/books/borrowedBooks/' + bookId).set(userId));
+
+                promises.push(admin.database().ref('/users/' + userId + '/statistics/lentBooks').transaction(count => { return (count || 0) + 1; }));
+                promises.push(admin.database().ref('/users/' + peerId + '/statistics/borrowedBooks').transaction(count => { return (count || 0) + 1; }));
+                promises.push(admin.database().ref('/users/' + peerId + '/statistics/toBeReturnedBooks').transaction(count => { return (count || 0) + 1; }));
+
+                return Promise.all(promises);
+            });
+        }
+
+        return true;
     });
 
-exports.onBorrowingEnded = functions.database.ref('/conversations/{cid}/flags/returnState')
+exports.onReturnStateChanged = functions.database.ref('/conversations/{cid}/flags/returnState')
         .onWrite((change, context) => {
 
             if (change.after.val() !== 3) {
@@ -174,6 +187,30 @@ exports.onPeerRatingAdded = functions.database.ref('/conversations/{cid}/peer/ra
             promises.push(admin.database().ref('/conversations/' + cid + '/flags/peerFeedback').set(true));
             return Promise.all(promises).then(results => { return onRatingAdded(results, change.after.val()) });
          });
+
+exports.onBookAvailabilityChanged = functions.database.ref('/books/{bid}/flags')
+        .onWrite((change, context) => {
+
+            if (change.after.child('deleted').val() === true) {
+                return true;
+            }
+
+            const bid = context.params.bid;
+            const messageId = change.after.child('available').val() === true ? 'bookAvailable' : 'bookNotAvailable';
+
+            return admin.database().ref('/conversations/').orderByChild('bookId').equalTo(bid)
+                         .once('value').then(results => {
+
+                     let promises = [];
+                     results.forEach(conversation => {
+                        if (conversation.child('flags/archived').val() !== true &&
+                                conversation.child('flags/borrowingState').val() === 2) {
+                            promises.push(sendMessage(conversation.key, 'peer', messageId));
+                        }
+                     });
+                     return Promise.all(promises);
+                 });
+            });
 
 function sendNotifications(cid, uid, rid, message) {
 
@@ -254,6 +291,7 @@ function performDelete(conversations) {
     conversations.forEach(conversation => {
         promises.push(conversation.ref.child('flags/bookDeleted').set(true));
         promises.push(conversation.ref.child('flags/archived').set(true));
+        promises.push(sendMessage(conversation.key, 'peer', 'bookDeleted'));
     });
     return Promise.all(promises);
 }
@@ -276,4 +314,48 @@ function onRatingAdded(results, rating) {
         .transaction(count => { return (count || 0) + 1; }));
 
     return Promise.all(promises);
+}
+
+function sendMessage(cid, recipient, textId) {
+
+    const texts = {
+        en: {
+            borrowingRequestAccepted: "Your borrowing request has been accepted!",
+            bookNotAvailable: "The requested book is currently not available",
+            bookAvailable: "The requested book is again available",
+            bookDeleted: "The book has been deleted by the owner",
+        },
+        it: {
+            borrowingRequestAccepted: "La tua richiesta di prestito è stata accettata!",
+            bookNotAvailable: "Il libro richiesto non è attualmente disponibile",
+            bookAvailable: "Il libro richiesto è nuovamente disponibile",
+            bookDeleted: "Il libro è stato eliminato dal proprietario",
+        }
+    }
+
+    let promises = []
+
+    promises.push(admin.database().ref('/conversations/' + cid + '/' + recipient + '/uid').once('value'));
+    promises.push(admin.database().ref('/conversations/' + cid + '/language').once('value'));
+
+    return Promise.all(promises).then(results => {
+        const uid = results[0].val();
+        const language = results[1].val();
+
+        let message = new Object();
+        message.recipient = uid;
+        message.timestamp = Date.now();
+        message.special = true;
+
+        switch (language) {
+            case 'it':
+            case 'en':
+                message.text = texts[language][textId];
+                break;
+            default:
+                message.text = texts['en'][textId];
+        }
+
+        return admin.database().ref('/conversations/' + cid + '/messages').push().set(message);
+    });
 }

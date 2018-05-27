@@ -18,7 +18,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import it.polito.mad.mad2018.R;
 import it.polito.mad.mad2018.data.Book;
@@ -36,6 +35,7 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
     private Conversation conversation;
     private UserProfile peer;
     private Book book;
+    private boolean conversationArchived;
 
     private EditText editTextMessage;
     private TextView viewNoMessages;
@@ -71,6 +71,7 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         conversation = (Conversation) getArguments().getSerializable(Conversation.CONVERSATION_KEY);
         peer = (UserProfile) getArguments().getSerializable(UserProfile.PROFILE_INFO_KEY);
         book = (Book) getArguments().getSerializable(Book.BOOK_KEY);
+        conversationArchived = conversation.isArchived();
     }
 
     @Override
@@ -82,20 +83,26 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
 
         findViews(view);
 
-        buttonSend.setEnabled(false);
-        buttonSend.setOnClickListener(v -> {
-            boolean wasNewConversation = conversation.isNew();
-            conversation.sendMessage(editTextMessage.getText().toString());
-            editTextMessage.setText(null);
+        if (conversationArchived) {
+            view.findViewById(R.id.chat_line).setVisibility(View.GONE);
+            editTextMessage.setVisibility(View.GONE);
+            buttonSend.setVisibility(View.GONE);
+        } else {
+            buttonSend.setEnabled(false);
+            buttonSend.setOnClickListener(v -> {
+                boolean wasNewConversation = conversation.isNew();
+                conversation.sendMessage(editTextMessage.getText().toString());
+                editTextMessage.setText(null);
 
-            if (wasNewConversation) {
-                setupMessages();
-            }
-        });
+                if (wasNewConversation) {
+                    setupMessages();
+                }
+            });
 
-        editTextMessage.addTextChangedListener(new TextWatcherUtilities.GenericTextWatcher(
-                editable -> buttonSend.setEnabled(!Utilities.isNullOrWhitespace(editable.toString()))
-        ));
+            editTextMessage.addTextChangedListener(new TextWatcherUtilities.GenericTextWatcher(
+                    editable -> buttonSend.setEnabled(!Utilities.isNullOrWhitespace(editable.toString()))
+            ));
+        }
 
         return view;
     }
@@ -142,6 +149,7 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         }
 
         conversation.stopOnConversationFlagsUpdatedListener();
+        book.stopOnBookFlagsUpdatedListener();
 
         hideFeedbackToolbar();
     }
@@ -169,9 +177,10 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         adapter.startListening();
         editTextMessage.setEnabled(true);
 
+        book.startOnBookFlagsUpdatedListener(this::setupToolbar);
         conversation.startOnConversationFlagsUpdatedListener(() -> {
             this.setupToolbar();
-            if (conversation.isArchived()) {
+            if (conversation.isArchived() && !conversationArchived) {
                 openDialog(SingleChatFragment.DialogID.DIALOG_ARCHIVED, true);
                 conversation.stopOnConversationFlagsUpdatedListener();
             }
@@ -186,6 +195,10 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
     }
 
     private void setupToolbar() {
+        if (conversationArchived) {
+            return;
+        }
+
         assert getActivity() != null;
         popupToolbar = getActivity().findViewById(R.id.popup_toolbar); // Extra part of the toolbar for the actions
 
@@ -194,11 +207,11 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         popupToolbar.findViewById(R.id.toolbar_accept_decline_request_layout).setVisibility(View.GONE);
         popupToolbar.findViewById(R.id.toolbar_leave_feedback_layout).setVisibility(View.GONE);
 
-        if (conversation.canRequestBorrowing()) { // If I'm not the owner I have to make sure of being able to ask for the book
+        if (conversation.canRequestBorrowing()) {
             setupToolbarForRequestBook();
         } else if (conversation.canRequestReturn()) {
             setupToolbarForReturnBook();
-        } else if (conversation.isBookOwner() && (conversation.isPendingReturnRequest() || conversation.isPendingBorrowingRequest())) { // Am I the owner and have I a pending borrowing request?
+        } else if (conversation.canAnswerBorrowingRequest(book) || conversation.canConfirmReturnRequest()) {
             setupToolbarForAnsweringRequest();
         } else if (conversation.canUploadRating()) {
             setupToolbarForFeedback();
@@ -211,8 +224,8 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         popupToolbar.setVisibility(View.VISIBLE);
         popupToolbar.findViewById(R.id.toolbar_request_book_layout).setVisibility(View.VISIBLE);
         popupToolbar.findViewById(R.id.pt_ask_for_book).setOnClickListener(v -> {
-            if (conversation.canRequestBorrowing()) {
 
+            if (conversation.canRequestBorrowing()) {
                 boolean wasNewConversation = conversation.isNew();
                 conversation.requestBorrowing(book);
 
@@ -231,8 +244,6 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
             if (conversation.canRequestReturn()) {
                 conversation.requestReturn(book);
                 popupToolbar.setVisibility(View.GONE);
-            } else {
-                Toast.makeText(this.getContext(), getResources().getString(R.string.can_not_return_book), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -243,7 +254,7 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
         popupToolbar.findViewById(R.id.toolbar_accept_decline_request_layout).setVisibility(View.VISIBLE);
         TextView question = popupToolbar.findViewById(R.id.pt_accept_decline_question);
 
-        if (conversation.isPendingReturnRequest()) {
+        if (conversation.canConfirmReturnRequest()) {
             question.setText(getResources().getString(R.string.request_for_return_from_peer));
         } else {
             question.setText(getResources().getString(R.string.request_for_borrow_from_peer));
@@ -253,33 +264,23 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
 
         // Set actions of the buttons
         accept.setOnClickListener(v -> {
-            if (conversation.isPendingReturnRequest()) {
-                if (conversation.canConfirmReturnRequest())
-                    this.confirmReturn();
-                else {
-                    Toast.makeText(this.getContext(), getResources().getString(R.string.can_not_return_book), Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                if (conversation.canAnswerBorrowingRequest()) {
-                    this.acceptBorrowingRequest();
-                } else {
-                    Toast.makeText(this.getContext(), getResources().getString(R.string.can_not_borrowing_request), Toast.LENGTH_SHORT).show();
-                }
+            if (conversation.canConfirmReturnRequest()) {
+                this.confirmReturn();
+            } else if (conversation.canAnswerBorrowingRequest(book)) {
+                this.acceptBorrowingRequest();
             }
             this.setupToolbar();
         });
 
         decline.setOnClickListener(v -> {
-            if (conversation.canAnswerBorrowingRequest()) {
+            if (conversation.canAnswerBorrowingRequest(book)) {
                 conversation.rejectBorrowingRequest();
-            } else {
-                Toast.makeText(this.getContext(), getResources().getString(R.string.can_not_borrowing_request), Toast.LENGTH_SHORT).show();
             }
             this.setupToolbar();
         });
 
-        accept.setText(conversation.isPendingReturnRequest() ? R.string.confirm : R.string.accept);
-        decline.setVisibility(conversation.isPendingReturnRequest() ? View.GONE : View.VISIBLE);
+        accept.setText(conversation.canConfirmReturnRequest() ? R.string.confirm : R.string.accept);
+        decline.setVisibility(conversation.canConfirmReturnRequest() ? View.GONE : View.VISIBLE);
     }
 
     private void setupToolbarForFeedback() {
@@ -296,7 +297,9 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
     }
 
     private void hideFeedbackToolbar() {
-        popupToolbar.setVisibility(View.GONE);
+        if (popupToolbar != null) {
+            popupToolbar.setVisibility(View.GONE);
+        }
     }
 
     private void acceptBorrowingRequest() {

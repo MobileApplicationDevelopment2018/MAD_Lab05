@@ -162,7 +162,6 @@
     <string name="delete_conversation">Cancellare la conversazione?</string>
     <string name="delete_conversation_message">Se confermi, questa conversazione non sarà più visibile in futuro nel tuo archivio.</string>
     <string name="message_request_borrowing">Mi piacerebbe prendere in prestito il tuo libro intitolato \'%1$s\'.</string>
-    <string name="message_borrowing_request_accept">La tua richiesta di prestito è stata accettata!</string>
     <string name="message_borrowing_request_reject">La tua richiesta di prestito è stata rifiutata!</string>
     <string name="message_request_return">Vorrei restituirti il tuo libro intitolato \'%1$s\'.</string>
     <string name="message_request_return_confirm">Il prestito si è concluso correttamente. Grazie!.</string>

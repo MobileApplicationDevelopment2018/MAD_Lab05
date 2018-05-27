@@ -65,7 +65,7 @@
             ".write": "data.val() !== true && newData.val() === true && (newData.parent().parent().child('owner/uid').val() === auth.uid || newData.parent().parent().child('peer/uid').val() === auth.uid) && (newData.parent().child('borrowingState').val() !== 3 || newData.parent().child('returnState').val() === 3)"
           },
           "borrowingState": {
-            ".write": "(data.val() === 1 && newData.val() === 2 && newData.parent().parent().child('peer/uid').val() === auth.uid) || (data.val() === 2 && (newData.val() === 1 || newData.val() === 3) && newData.parent().parent().child('owner/uid').val() === auth.uid)"
+            ".write": "(data.val() === 1 && newData.val() === 2 && newData.parent().parent().child('peer/uid').val() === auth.uid) || (data.val() === 2 && (newData.val() === 1 || (newData.val() === 3 && root.child('books/' + newData.parent().parent().child('bookId').val() + '/flags/available').val() !== false)) && newData.parent().parent().child('owner/uid').val() === auth.uid)"
           },
           "returnState": {
             ".write": "newData.parent().child('borrowingState').val() == 3 && ((data.val() === 1 && newData.val() === 2 && newData.parent().parent().child('peer/uid').val() === auth.uid) || (data.val() === 2 && newData.val() === 3 && newData.parent().parent().child('owner/uid').val() === auth.uid))"
