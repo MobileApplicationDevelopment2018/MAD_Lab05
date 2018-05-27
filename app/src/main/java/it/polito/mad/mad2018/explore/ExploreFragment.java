@@ -23,7 +23,6 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.algolia.instantsearch.helpers.InstantSearch;
 import com.algolia.instantsearch.helpers.Searcher;
@@ -38,6 +37,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import it.polito.mad.mad2018.MAD2018Application;
 import it.polito.mad.mad2018.R;
@@ -59,7 +59,7 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
 
     private ArrayList<Filter> filters;
 
-    private final Searcher searcher;
+    private Searcher searcher;
     private FilterResultsFragment filterResultsFragment;
 
     private ViewPager pager;
@@ -73,8 +73,14 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
     private InstantSearch helper;
 
     public ExploreFragment() {
-        searcher = Searcher.create(Constants.ALGOLIA_APP_ID, Constants.ALGOLIA_SEARCH_API_KEY,
-                Constants.ALGOLIA_INDEX_NAME);
+
+        try {
+            searcher = Searcher.get();
+        } catch (NoSuchElementException e) {
+            searcher = Searcher.create(Constants.ALGOLIA_APP_ID, Constants.ALGOLIA_SEARCH_API_KEY,
+                    Constants.ALGOLIA_INDEX_NAME);
+        }
+
     }
 
     public static ExploreFragment newInstance() {
@@ -85,6 +91,8 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setupGoogleAPI();
+
         if (savedInstanceState != null) {
             searchQuery = savedInstanceState.getString(SEARCH_QUERY_KEY);
             filters = savedInstanceState.getParcelableArrayList(FILTERS_KEY);
@@ -93,8 +101,8 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
             filters = new ArrayList<>(3);
             createFilters();
         }
-        setupGoogleAPI();
 
+        assert filters != null;
         for (Filter filter : filters) {
             filter.applyFilter();
         }
@@ -102,7 +110,6 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         if (filterResultsFragment == null) {
             filterResultsFragment = FilterResultsFragment.newInstance(filters);
         }
-
     }
 
     @Override
@@ -190,6 +197,7 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         if (appBarLayout != null) {
             appBarLayout.removeView(algoliaLogoLayout);
         }
+        searchQuery = searcher.getQuery().getQuery();
         super.onDestroyView();
     }
 
@@ -271,7 +279,7 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString(SEARCH_QUERY_KEY, searcher.getQuery().getQuery());
+        outState.putString(SEARCH_QUERY_KEY, searchQuery);
         outState.putParcelableArrayList(FILTERS_KEY, filters);
     }
 
@@ -301,7 +309,6 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
 
     @Override
     public void onDialogDismiss() {
-        Toast.makeText(getContext(), searcher.getQuery().getQuery(), Toast.LENGTH_SHORT).show();
         helper.search(searcher.getQuery().getQuery());
     }
 
@@ -504,7 +511,7 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         @Override
         void applyFilter() {
             super.applyFilter();
-            searcher.addNumericRefinement(new NumericRefinement(attribute, NumericRefinement.OPERATOR_GE, value));
+            Searcher.get().addNumericRefinement(new NumericRefinement(attribute, NumericRefinement.OPERATOR_GE, value));
         }
 
         @Override
@@ -547,7 +554,7 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         void applyFilter() {
             super.applyFilter();
             double[] position = LocalUserProfile.getInstance().getCoordinates();
-            Query query = searcher.getQuery().setAroundLatLng(new AbstractQuery.LatLng(position[0], position[1]));
+            Query query = Searcher.get().getQuery().setAroundLatLng(new AbstractQuery.LatLng(position[0], position[1]));
             if (value < max) {
                 query.setAroundRadius(value);
             } else {
@@ -620,9 +627,9 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
 
             if (attribute != null) {
                 if (value) {
-                    searcher.addBooleanFilter(attribute, checkedIsTrue);
+                    Searcher.get().addBooleanFilter(attribute, checkedIsTrue);
                 } else {
-                    searcher.removeBooleanFilter(attribute);
+                    Searcher.get().removeBooleanFilter(attribute);
                 }
             }
         }
