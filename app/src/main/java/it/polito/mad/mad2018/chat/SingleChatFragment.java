@@ -285,10 +285,14 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
     private void setupToolbarForFeedback() {
         popupToolbar.setVisibility(View.VISIBLE);
         popupToolbar.findViewById(R.id.toolbar_leave_feedback_layout).setVisibility(View.VISIBLE);
-        popupToolbar.findViewById(R.id.pb_leave_feedback).setOnClickListener(v -> {
-            RatingFragment dialog = RatingFragment.Factory.newInstance(conversation);
-            dialog.show(getChildFragmentManager(), RATING_DIALOG_FRAGMENT_TAG);
-        });
+        RatingFragment ratingFragmentInstance = (RatingFragment) getChildFragmentManager()
+                .findFragmentByTag(RatingFragment.TAG);
+        if (ratingFragmentInstance == null) {
+            ratingFragmentInstance = RatingFragment.Factory.newInstance(conversation);
+        }
+        final RatingFragment dialog = ratingFragmentInstance;
+        popupToolbar.findViewById(R.id.pb_leave_feedback).setOnClickListener(v ->
+                dialog.show(getChildFragmentManager(), RatingFragment.TAG));
     }
 
     private void hideFeedbackToolbar() {
