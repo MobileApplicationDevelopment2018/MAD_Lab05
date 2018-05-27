@@ -353,7 +353,7 @@ public class AddBookFragment extends FragmentDialog<AddBookFragment.DialogID>
             clearViews(true);
 
             if (onBookAddedListener != null) {
-                onBookAddedListener.OnBookAdded(book);
+                onBookAddedListener.OnBookAdded();
             }
         };
         OnFailureListener onFailure = v -> {
@@ -571,6 +571,6 @@ public class AddBookFragment extends FragmentDialog<AddBookFragment.DialogID>
     }
 
     public interface OnBookAddedListener {
-        void OnBookAdded(Book book);
+        void OnBookAdded();
     }
 }

@@ -88,6 +88,9 @@ public class ArchivedChatsFragment extends Fragment {
         super.onStop();
         adapter.stopListening();
 
+        if (deleteDialog != null && deleteDialog.isShowing()) {
+            deleteDialog.cancel();
+        }
         if (handlerUpdateMessageTime != null && runnableUpdateMessageTime != null) {
             handlerUpdateMessageTime.removeCallbacks(runnableUpdateMessageTime);
         }

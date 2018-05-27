@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import it.polito.mad.mad2018.R;
-import it.polito.mad.mad2018.data.Book;
 
 public class AddBookActivity extends AppCompatActivity
         implements AddBookFragment.OnBookAddedListener {
@@ -30,7 +29,7 @@ public class AddBookActivity extends AppCompatActivity
     }
 
     @Override
-    public void OnBookAdded(Book book) {
+    public void OnBookAdded() {
         finish();
     }
 }

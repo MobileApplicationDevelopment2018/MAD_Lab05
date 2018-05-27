@@ -17,7 +17,7 @@ class RatingFragment : DialogFragment() {
 
     companion object Factory {
 
-        const val TAG = "RatingFragment";
+        const val TAG = "RatingFragment"
 
         fun newInstance(conversation: Conversation): RatingFragment {
             val ratingFragment = RatingFragment()

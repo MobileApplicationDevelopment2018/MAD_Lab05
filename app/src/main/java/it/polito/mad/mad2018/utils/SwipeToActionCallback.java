@@ -20,7 +20,7 @@ public abstract class SwipeToActionCallback extends ItemTouchHelper.SimpleCallba
     private final int iconWidth, iconHeight;
     private final Paint clearPaint;
 
-    public SwipeToActionCallback(@NonNull Context context, @DrawableRes int icon, @ColorRes int background) {
+    protected SwipeToActionCallback(@NonNull Context context, @DrawableRes int icon, @ColorRes int background) {
         super(0, ItemTouchHelper.LEFT);
 
         this.icon = context.getResources().getDrawable(icon);

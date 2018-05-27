@@ -1,6 +1,5 @@
 package it.polito.mad.mad2018.profile;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -88,13 +87,8 @@ public class ShowProfileFragment extends Fragment {
             }
         });
 
-        // ShowBooks button
-        final ImageButton showBooksButton = getView().findViewById(R.id.sp_show_books);
-        showBooksButton.setVisibility((profile instanceof LocalUserProfile || onShowOwnedBooksClickListener == null)
-                ? View.INVISIBLE : View.VISIBLE);
-        showBooksButton.setOnClickListener(v -> onShowOwnedBooksClickListener.OnShowOwnedBooksClick(profile));
-
-        if (!(profile instanceof LocalUserProfile)) {
+        if (getActivity() instanceof ShowProfileFragment.OnShowOwnedBooksClickListener) {
+            this.onShowOwnedBooksClickListener = (ShowProfileFragment.OnShowOwnedBooksClickListener) getActivity();
             getView().findViewById(R.id.sp_card_books)
                     .setOnClickListener(v -> onShowOwnedBooksClickListener.OnShowOwnedBooksClick(profile));
         }
@@ -114,21 +108,6 @@ public class ShowProfileFragment extends Fragment {
             inflater.inflate(R.menu.menu_show_profile, menu);
         }
         super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-
-        if (getActivity() instanceof ShowProfileFragment.OnShowOwnedBooksClickListener) {
-            this.onShowOwnedBooksClickListener = (ShowProfileFragment.OnShowOwnedBooksClickListener) getActivity();
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        this.onShowOwnedBooksClickListener = null;
     }
 
     @Override

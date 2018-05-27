@@ -445,7 +445,7 @@ public class Conversation implements Serializable {
     }
 
     /* Fields need to be public to enable Firebase to access them */
-    @SuppressWarnings({"WeakerAccess", "CanBeFinal"})
+    @SuppressWarnings({"WeakerAccess", "CanBeFinal", "unused"})
     public static class Data implements Serializable {
 
         public String bookId;

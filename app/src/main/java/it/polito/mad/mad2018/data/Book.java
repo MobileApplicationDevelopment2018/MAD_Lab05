@@ -173,14 +173,14 @@ public class Book implements Serializable {
     }
 
     public boolean isAvailable() {
-        return this.data.flags.available;
+        return this.data.flags.available && !isDeleted();
     }
 
     public boolean isDeletable() {
         return this.isAvailable() && this.isOwnedBook();
     }
 
-    public boolean isDeleted() {
+    private boolean isDeleted() {
         return this.data.flags.deleted;
     }
 

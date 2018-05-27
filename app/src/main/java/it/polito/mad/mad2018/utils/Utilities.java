@@ -45,10 +45,6 @@ public class Utilities {
         return true;
     }
 
-    public static String trimString(String string) {
-        return trimString(string, 0);
-    }
-
     public static String trimString(String string, int maxLength) {
         if (string == null) {
             return null;

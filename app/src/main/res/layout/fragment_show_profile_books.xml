@@ -14,47 +14,22 @@
         android:gravity="center_horizontal"
         android:orientation="horizontal">
 
-        <View
-            android:layout_width="48dp"
-            android:layout_height="match_parent" />
-
-        <LinearLayout
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/sp_owned_books_number"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_marginEnd="16dp"
+            android:text="@string/number_zero"
+            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+            android:textColor="@color/colorTextAccent" />
 
-            <TextView
-                android:id="@+id/sp_owned_books_number"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/number_zero"
-                android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-                android:textColor="@color/colorTextAccent" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:text="@string/owned_books"
-                android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                android:textColor="@color/colorText" />
-
-        </LinearLayout>
-
-        <android.support.v7.widget.AppCompatImageButton
-            android:id="@+id/sp_show_books"
-            style="@style/Widget.AppCompat.Button.Colored"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:contentDescription="@string/show_owned_book"
-            android:padding="12dp"
-            android:src="@drawable/ic_default_book_preview"
-            android:tint="@color/colorIcon"
-            android:visibility="invisible" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="@string/owned_books"
+            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+            android:textColor="@color/colorText" />
 
     </LinearLayout>
 
@@ -62,7 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="8dp">
+        android:layout_marginTop="12dp">
 
         <LinearLayout
             android:layout_width="0dp"

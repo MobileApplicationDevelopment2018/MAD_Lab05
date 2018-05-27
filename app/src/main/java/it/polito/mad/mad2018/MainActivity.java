@@ -54,7 +54,8 @@ import it.polito.mad.mad2018.utils.GlideRequest;
 import it.polito.mad.mad2018.utils.Utilities;
 
 public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        ShowProfileFragment.OnShowOwnedBooksClickListener {
 
     private static final int RC_SIGN_IN = 1;
     private static final int RC_EDIT_PROFILE = 5;
@@ -146,7 +147,7 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
                     ((ExploreFragment) fragment).onBackPressed();
                 }
             } else {
-                super.onBackPressed();
+                showDefaultFragment();
             }
         }
     }
@@ -161,7 +162,7 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
                 this.replaceFragment(ExploreFragment.newInstance());
                 break;
 
-            case R.id.nav_add_book:
+            case R.id.nav_library:
                 this.replaceFragment(LibraryFragment.newInstance());
                 break;
 
@@ -477,6 +478,13 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
         if (dialog != null) {
             setDialogInstance(dialog);
         }
+    }
+
+    @Override
+    public void OnShowOwnedBooksClick(@NonNull UserProfile profile) {
+        NavigationView drawer = findViewById(R.id.nav_view);
+        drawer.getMenu().findItem(R.id.nav_library).setChecked(true);
+        this.replaceFragment(LibraryFragment.newInstance());
     }
 
     public enum DialogID {

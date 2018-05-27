@@ -30,7 +30,6 @@ import it.polito.mad.mad2018.utils.Utilities;
 
 public class SingleChatFragment extends FragmentDialog<SingleChatFragment.DialogID>
         implements RatingFragment.OnDismissListener {
-    private static final String RATING_DIALOG_FRAGMENT_TAG = "rating_dialog_fragment_tag";
 
     private Conversation conversation;
     private UserProfile peer;

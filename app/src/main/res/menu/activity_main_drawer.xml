@@ -9,7 +9,7 @@
             android:icon="@drawable/ic_home_black_24dp"
             android:title="@string/explore" />
         <item
-            android:id="@+id/nav_add_book"
+            android:id="@+id/nav_library"
             android:icon="@drawable/ic_library_black_24dp"
             android:title="@string/my_library" />
         <item

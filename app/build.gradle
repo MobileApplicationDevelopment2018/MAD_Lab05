@@ -76,15 +76,14 @@ dependencies {
     implementation 'me.gujun.android.taggroup:library:1.4@aar'
     implementation 'com.rm:longpresspopup:1.0.1'
 
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
     annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android-extensions'
-repositories {
-    mavenCentral()
-}
+
