@@ -332,6 +332,7 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
                     return;
                 }
                 closeDialog();
+                showDefaultFragment();
 
                 UserProfile.Data data = dataSnapshot.getValue(UserProfile.Data.class);
                 if (data == null) {
@@ -339,7 +340,6 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
                 } else {
                     LocalUserProfile.setInstance(new LocalUserProfile(data));
                     updateNavigationView();
-                    showDefaultFragment();
                     showToast(getString(R.string.sign_in_welcome_back) + " " + LocalUserProfile.getInstance().getUsername());
                 }
                 ChatIDService.uploadToken(LocalUserProfile.getInstance(), FirebaseInstanceId.getInstance().getToken());
