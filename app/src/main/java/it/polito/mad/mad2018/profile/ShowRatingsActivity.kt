@@ -58,4 +58,9 @@ class ShowRatingsActivity : AppCompatActivity() {
         adapter.stopListening()
         super.onStop()
     }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putSerializable(UserProfile.PROFILE_INFO_KEY, profile)
+    }
 }

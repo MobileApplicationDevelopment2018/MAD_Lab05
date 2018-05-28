@@ -199,7 +199,7 @@ public class ChatAdapter extends FirebaseRecyclerAdapter<Conversation, ChatAdapt
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Pair<ValueEventListener, Set<Integer>> listener = bookListeners.remove(bookId);
-                        UserProfile.unsetOnProfileLoadedListener(bookId, listener.first);
+                        Book.unsetOnBookLoadedListener(bookId, listener.first);
                     }
                 });
     }

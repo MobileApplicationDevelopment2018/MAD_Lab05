@@ -2,7 +2,7 @@
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="120dp"
+    android:layout_height="wrap_content"
     android:layout_marginEnd="8dp"
     android:layout_marginStart="8dp"
     android:layout_marginTop="10dp"
@@ -53,7 +53,7 @@
         <TextView
             android:id="@+id/rtg_comment"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:layout_marginTop="8dp"
             android:ellipsize="end"
@@ -64,6 +64,22 @@
             card_view:layout_constraintEnd_toStartOf="@+id/rtg_show_book"
             card_view:layout_constraintStart_toStartOf="parent"
             card_view:layout_constraintTop_toBottomOf="@+id/rtg_book_title" />
+
+        <!--TextView
+            android:id="@+id/rtg_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:text="01/01/2001"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            card_view:layout_constraintBottom_toBottomOf="parent"
+            card_view:layout_constraintEnd_toStartOf="@+id/rtg_show_book"
+            card_view:layout_constraintStart_toStartOf="parent"
+            card_view:layout_constraintTop_toBottomOf="@+id/rtg_comment" /-->
 
     </android.support.constraint.ConstraintLayout>
 </android.support.v7.widget.CardView>
