@@ -19,7 +19,8 @@ import it.polito.mad.mad2018.data.Rating
 import it.polito.mad.mad2018.library.BookInfoActivity
 import it.polito.mad.mad2018.library.BookInfoFragment
 import kotlinx.android.synthetic.main.item_rating.view.*
-import java.util.HashSet
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -129,6 +130,8 @@ internal class RatingAdapter(options: FirebaseRecyclerOptions<Rating>,
 
             itemView.rtg_book_title.text = if (book == null) itemView.context.getString(R.string.loading) else book.title
             itemView.rtg_show_book.visibility = if (book == null) View.INVISIBLE else View.VISIBLE
+
+            itemView.rtg_date.text = SimpleDateFormat("dd/MM/yyyy").format(model.timestamp).toString()
 
             itemView.setOnClickListener {
                 itemView.rtg_comment.maxLines = if (itemView.rtg_comment.maxLines == Int.MAX_VALUE) 2 else Int.MAX_VALUE
