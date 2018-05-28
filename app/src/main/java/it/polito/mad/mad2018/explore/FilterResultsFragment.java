@@ -8,8 +8,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.Toast;
-
 import java.util.ArrayList;
 
 import it.polito.mad.mad2018.R;
@@ -34,7 +32,6 @@ public class FilterResultsFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         super.onCreateDialog(savedInstanceState);
-
         filters = getArguments().getParcelableArrayList(FILTERS_KEY);
 
         final FragmentActivity activity = getActivity();
@@ -42,8 +39,12 @@ public class FilterResultsFragment extends DialogFragment {
         layout.setOrientation(LinearLayout.VERTICAL);
 
         for (ExploreFragment.Filter filter : filters) {
-            boolean updateView = savedInstanceState == null;
-            filter.createView(updateView, activity);
+
+            Integer value = null;
+            if (savedInstanceState != null) {
+                value = savedInstanceState.getInt(filter.name);
+            }
+            filter.createView(value, activity);
             layout.addView(filter.filterLayout);
         }
 
@@ -56,6 +57,7 @@ public class FilterResultsFragment extends DialogFragment {
                         filter.updateValue();
                         filter.applyFilter();
                     }
+
                     ((OnDismissListener)getParentFragment()).onDialogDismiss();
                     dialog.dismiss();
                 })
@@ -67,6 +69,9 @@ public class FilterResultsFragment extends DialogFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        for(ExploreFragment.Filter filter : filters) {
+            outState.putInt(filter.name, filter.getFilterLayoutValue());
+        }
     }
 
     interface OnDismissListener {

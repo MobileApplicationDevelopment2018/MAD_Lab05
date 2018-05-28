@@ -1,5 +1,6 @@
 package it.polito.mad.mad2018.explore;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -37,9 +38,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
-import it.polito.mad.mad2018.MAD2018Application;
 import it.polito.mad.mad2018.R;
 import it.polito.mad.mad2018.data.Book;
 import it.polito.mad.mad2018.data.Constants;
@@ -72,19 +71,15 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
     private final static String SEARCH_QUERY_KEY = "searchQuery";
     private InstantSearch helper;
 
-    public ExploreFragment() {
-
-        try {
-            searcher = Searcher.get();
-        } catch (NoSuchElementException e) {
-            searcher = Searcher.create(Constants.ALGOLIA_APP_ID, Constants.ALGOLIA_SEARCH_API_KEY,
-                    Constants.ALGOLIA_INDEX_NAME);
-        }
-
-    }
-
     public static ExploreFragment newInstance() {
         return new ExploreFragment();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        searcher = Searcher.create(Constants.ALGOLIA_APP_ID, Constants.ALGOLIA_SEARCH_API_KEY,
+                Constants.ALGOLIA_INDEX_NAME);
     }
 
     @Override
@@ -96,6 +91,11 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         if (savedInstanceState != null) {
             searchQuery = savedInstanceState.getString(SEARCH_QUERY_KEY);
             filters = savedInstanceState.getParcelableArrayList(FILTERS_KEY);
+            assert filters != null;
+            for (Filter filter : filters) {
+                filter.searcher = searcher;
+                filter.context = getContext();
+            }
         } else {
             searchQuery = "";
             filters = new ArrayList<>(3);
@@ -202,9 +202,9 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
     }
 
     @Override
-    public void onDestroy() {
+    public void onDetach() {
         searcher.destroy();
-        super.onDestroy();
+        super.onDetach();
     }
 
     @Override
@@ -340,15 +340,15 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
 
         final List<Book.BookConditions> bc = Book.BookConditions.values();
         ConditionsFilter conditionsFilter = new ConditionsFilter(CONDITIONS_FILTER_NAME,
-                bc.get(0).value, bc.get(bc.size() - 1).value, bc.size() - 1, 0);
+                bc.get(0).value, bc.get(bc.size() - 1).value, bc.size() - 1, 0, searcher, getContext());
         conditionsFilter.value = conditionsFilter.min;
         filters.add(conditionsFilter);
 
-        DistanceFilter distanceFilter = new DistanceFilter(DISTANCE_FILTER_NAME, 0, 1000000, 50, 1);
+        DistanceFilter distanceFilter = new DistanceFilter(DISTANCE_FILTER_NAME, 0, 1000000, 50, 1, searcher, getContext());
         distanceFilter.value = distanceFilter.max;
         filters.add(distanceFilter);
 
-        CheckBoxFilter availabilityFilter = new CheckBoxFilter(AVAILABILITY_FILTER_NAME, true, MAD2018Application.getApplicationContextStatic().getString(R.string.filter_available_books), 2);
+        CheckBoxFilter availabilityFilter = new CheckBoxFilter(AVAILABILITY_FILTER_NAME, true, getString(R.string.filter_available_books), 2, searcher, getContext());
         availabilityFilter.value = false;
         filters.add(availabilityFilter);
     }
@@ -360,11 +360,15 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         int position;
         int value;
         View filterLayout;
+        Context context;
+        Searcher searcher;
 
-        Filter(@Nullable String attribute, String name, int position) {
+        Filter(@Nullable String attribute, String name, int position, Searcher searcher, Context context) {
             this.attribute = attribute;
             this.name = name;
             this.position = position;
+            this.context = context;
+            this.searcher = searcher;
             if (attribute != null) {
                 searcher.addFacet(attribute);
             }
@@ -396,7 +400,9 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
 
         abstract void updateValue();
 
-        abstract void createView(boolean value, FragmentActivity activity);
+        abstract void createView(Integer value, FragmentActivity activity);
+
+        abstract int getFilterLayoutValue();
 
         View getInflatedLayout(int layoutId, LayoutInflater inflater) {
             return inflater.inflate(layoutId, null);
@@ -409,8 +415,8 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         int steps;
         int seekBarValue;
 
-        SeekBarFilter(String attribute, String name, int min, int max, int steps, int position) {
-            super(attribute, name, position);
+        SeekBarFilter(String attribute, String name, int min, int max, int steps, int position, Searcher searcher, Context context) {
+            super(attribute, name, position, searcher, context);
             this.min = min;
             this.max = max;
             this.steps = steps;
@@ -434,14 +440,18 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         }
 
         @Override
-        void createView(boolean updateView, FragmentActivity activity) {
+        void createView(Integer value, FragmentActivity activity) {
             filterLayout = getInflatedLayout(R.layout.layout_seekbar, activity.getLayoutInflater());
 
             final TextView textView = filterLayout.findViewById(R.id.dialog_seekbar_text);
             final SeekBar seekBar = filterLayout.findViewById(R.id.dialog_seekbar_bar);
             seekBar.setMax(steps);
-            if (updateView) {
+            seekBar.setSaveEnabled(false);
+
+            if (value == null) {
                 seekBar.setProgress(getSeekBarValue(this.value));
+            } else {
+                seekBar.setProgress(value);
             }
             seekBarValue = seekBar.getProgress();
             updateSeekBarText(textView);
@@ -469,6 +479,11 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         }
 
         @Override
+        int getFilterLayoutValue() {
+            return seekBarValue;
+        }
+
+        @Override
         void updateValue() {
             final SeekBar seekBar = filterLayout.findViewById(R.id.dialog_seekbar_bar);
             value = getActualValue(seekBar.getProgress());
@@ -487,8 +502,8 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
 
     class ConditionsFilter extends SeekBarFilter {
 
-        ConditionsFilter(String name, int min, int max, int steps, int position) {
-            super(Book.ALGOLIA_CONDITIONS_KEY, name, min, max, steps, position);
+        ConditionsFilter(String name, int min, int max, int steps, int position, Searcher searcher, Context context) {
+            super(Book.ALGOLIA_CONDITIONS_KEY, name, min, max, steps, position, searcher, context);
         }
 
         ConditionsFilter(Parcel in) {
@@ -511,17 +526,18 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         @Override
         void applyFilter() {
             super.applyFilter();
-            Searcher.get().addNumericRefinement(new NumericRefinement(attribute, NumericRefinement.OPERATOR_GE, value));
+            searcher.addNumericRefinement(new NumericRefinement(attribute, NumericRefinement.OPERATOR_GE, value));
         }
 
         @Override
         void updateSeekBarText(final TextView textView) {
+
             String text;
             int value = getActualValue(seekBarValue);
             if (value == min) {
-                text = MAD2018Application.getApplicationContextStatic().getResources().getString(R.string.book_condition_any);
+                text = context.getString(R.string.book_condition_any);
             } else {
-                text = MAD2018Application.getApplicationContextStatic().getResources().getString(R.string.conditions_filter, MAD2018Application.getApplicationContextStatic().getResources().getString(Book.BookConditions.getStringId(value)).toLowerCase());
+                text = context.getString(R.string.conditions_filter, context.getString(Book.BookConditions.getStringId(value)).toLowerCase());
             }
             textView.setText(text);
         }
@@ -529,8 +545,8 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
 
     class DistanceFilter extends SeekBarFilter {
 
-        DistanceFilter(String name, int min, int max, int steps, int position) {
-            super(null, name, min, max, steps, position);
+        DistanceFilter(String name, int min, int max, int steps, int position, Searcher searcher, Context context) {
+            super(null, name, min, max, steps, position, searcher, context);
         }
 
         DistanceFilter(Parcel in) {
@@ -554,7 +570,7 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         void applyFilter() {
             super.applyFilter();
             double[] position = LocalUserProfile.getInstance().getCoordinates();
-            Query query = Searcher.get().getQuery().setAroundLatLng(new AbstractQuery.LatLng(position[0], position[1]));
+            Query query = searcher.getQuery().setAroundLatLng(new AbstractQuery.LatLng(position[0], position[1]));
             if (value < max) {
                 query.setAroundRadius(value);
             } else {
@@ -567,9 +583,9 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
             String text;
             int value = getActualValue(seekBarValue);
             if (value == max) {
-                text = MAD2018Application.getApplicationContextStatic().getResources().getString(R.string.no_distance_filter);
+                text = context.getString(R.string.no_distance_filter);
             } else {
-                text = MAD2018Application.getApplicationContextStatic().getResources().getString(R.string.maximum_distance, value / 1000);
+                text = context.getString(R.string.maximum_distance, value / 1000);
             }
             textView.setText(text);
         }
@@ -580,8 +596,8 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         String text;
         boolean value;
 
-        CheckBoxFilter(String name, boolean checkedIsTrue, String text, int position) {
-            super(Book.ALGOLIA_AVAILABLE_KEY, name, position);
+        CheckBoxFilter(String name, boolean checkedIsTrue, String text, int position, Searcher searcher, Context context) {
+            super(Book.ALGOLIA_AVAILABLE_KEY, name, position, searcher, context);
             this.checkedIsTrue = checkedIsTrue;
             this.text = text;
         }
@@ -627,24 +643,34 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
 
             if (attribute != null) {
                 if (value) {
-                    Searcher.get().addBooleanFilter(attribute, checkedIsTrue);
+                    searcher.addBooleanFilter(attribute, checkedIsTrue);
                 } else {
-                    Searcher.get().removeBooleanFilter(attribute);
+                    searcher.removeBooleanFilter(attribute);
                 }
             }
         }
 
         @Override
-        void createView(boolean updateView, FragmentActivity activity) {
+        void createView(Integer value, FragmentActivity activity) {
             filterLayout = getInflatedLayout(R.layout.layout_checkbox, activity.getLayoutInflater());
 
             final CheckBox checkBox = filterLayout.findViewById(R.id.dialog_checkbox_box);
             final TextView tv = filterLayout.findViewById(R.id.dialog_checkbox_text);
 
-            if (updateView) {
+            checkBox.setSaveEnabled(false);
+
+            if (value == null) {
                 checkBox.setChecked(this.value);
+            } else {
+                checkBox.setChecked(value != 0);
             }
             tv.setText(text);
+        }
+
+        @Override
+        int getFilterLayoutValue() {
+            final CheckBox checkBox = filterLayout.findViewById(R.id.dialog_checkbox_box);
+            return checkBox.isChecked() ? 1 : 0;
         }
     }
 }
