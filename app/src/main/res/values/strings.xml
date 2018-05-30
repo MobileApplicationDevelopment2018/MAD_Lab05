@@ -211,4 +211,5 @@
     <string name="can_not_borrowing_request">You can not confirm the request at the moment</string>
     <string name="leave_feedback">Leave feedback</string>
     <string name="return_book">Return book</string>
+    <string name="no_comment">No comment specified.</string>
 </resources>

@@ -3,6 +3,7 @@ package it.polito.mad.mad2018.profile
 import android.content.Intent
 import android.support.v4.content.ContextCompat.startActivity
 import android.support.v7.widget.RecyclerView
+import android.text.format.DateFormat
 import android.util.Pair
 import android.view.LayoutInflater
 import android.view.View
@@ -18,10 +19,8 @@ import it.polito.mad.mad2018.data.Book
 import it.polito.mad.mad2018.data.Rating
 import it.polito.mad.mad2018.library.BookInfoActivity
 import it.polito.mad.mad2018.library.BookInfoFragment
+import it.polito.mad.mad2018.utils.Utilities
 import kotlinx.android.synthetic.main.item_rating.view.*
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.collections.HashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
 
@@ -125,13 +124,16 @@ internal class RatingAdapter(options: FirebaseRecyclerOptions<Rating>,
 
             this.book = book
 
-            itemView.rtg_score.text = String.format(locale, "%.1f/5", model.score)
-            itemView.rtg_comment.text = model.comment
+            itemView.rtg_score.text = String.format(locale, "%.1f/5.0", model.score)
+            itemView.rtg_comment.text = if (Utilities.isNullOrWhitespace(model.comment))
+                itemView.context.getString(R.string.no_comment)
+            else
+                model.comment
 
             itemView.rtg_book_title.text = if (book == null) itemView.context.getString(R.string.loading) else book.title
             itemView.rtg_show_book.visibility = if (book == null) View.INVISIBLE else View.VISIBLE
 
-            itemView.rtg_date.text = SimpleDateFormat("dd/MM/yyyy").format(model.timestamp).toString()
+            itemView.rtg_date.text = DateFormat.getMediumDateFormat(itemView.context).format(model.timestamp)
 
             itemView.setOnClickListener {
                 itemView.rtg_comment.maxLines = if (itemView.rtg_comment.maxLines == Int.MAX_VALUE) 2 else Int.MAX_VALUE

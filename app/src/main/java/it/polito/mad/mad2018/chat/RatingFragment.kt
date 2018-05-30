@@ -11,6 +11,7 @@ import android.widget.RatingBar
 import it.polito.mad.mad2018.R
 import it.polito.mad.mad2018.data.Conversation
 import it.polito.mad.mad2018.data.Rating
+import it.polito.mad.mad2018.utils.Utilities
 
 class RatingFragment : DialogFragment() {
     private lateinit var conversation: Conversation
@@ -50,8 +51,8 @@ class RatingFragment : DialogFragment() {
 
     private fun uploadRating() {
         val ratingBar = dialog.findViewById<RatingBar>(R.id.rating_bar)
-        val ratingComment = dialog.findViewById<EditText>(R.id.rating_comment)
-        conversation.uploadRating(Rating(ratingBar.rating, ratingComment.text.toString()))
+        val ratingComment = Utilities.trimString(dialog.findViewById<EditText>(R.id.rating_comment).text.toString())
+        conversation.uploadRating(Rating(ratingBar.rating, ratingComment))
     }
 
     override fun onDismiss(dialog: DialogInterface?) {

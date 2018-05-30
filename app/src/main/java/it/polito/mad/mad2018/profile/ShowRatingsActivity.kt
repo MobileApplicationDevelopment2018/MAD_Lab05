@@ -29,6 +29,9 @@ class ShowRatingsActivity : AppCompatActivity() {
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+
         title = (if (profile is LocalUserProfile)
             getString(R.string.my_ratings_title)
         else
@@ -62,5 +65,10 @@ class ShowRatingsActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
         outState?.putSerializable(UserProfile.PROFILE_INFO_KEY, profile)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 }
