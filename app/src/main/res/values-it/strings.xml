@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NoFAndroid</string>
-    <string name="my_profile">Il mio profilo</string>
-    <string name="user_profile">Il profilo di %1$s</string>
-    <string name="edit_profile">Modifica il tuo profilo</string>
-    <string name="save_profile">Salva il tuo profilo</string>
-    <string name="add_book">Aggiungi libro</string>
-    <string name="book_details">Dettagli del libro</string>
+    <string name="showprofile_myprofiletitle">Il mio profilo</string>
+    <string name="showprofile_userprofiletitle">Il profilo di %1$s</string>
+    <string name="editprofile_title">Modifica il tuo profilo</string>
+    <string name="editprofile_save">Salva il tuo profilo</string>
+    <string name="addbook_title">Aggiungi libro</string>
+    <string name="bookinfo_title">Dettagli del libro</string>
 
-    <string name="profile_picture">Immagine profilo</string>
-    <string name="write_to_owner">Scrivi al proprietario</string>
+    <string name="showprofile_profilepicture">Immagine profilo</string>
+    <string name="bookinfo_writetoowner">Scrivi al proprietario</string>
     <string name="show_location">Visualizza città</string>
     <string name="owned_books">Libri posseduti</string>
     <string name="show_owned_book">Visualizza i libri posseduti</string>
@@ -42,7 +41,6 @@
     <string name="nav_header_desc">Header della finestra id navigazione</string>
 
     <string name="number_zero">0</string>
-    <string name="activity_main">NoFAndroid</string>
     <string name="my_library">Libreria</string>
     <string name="user_library">La libreria di %1$s</string>
     <string name="anonymous">Non ancora loggato</string>
@@ -122,7 +120,7 @@
     <string name="error_occurred">Si è verificato un errore</string>
     <string name="confirm_delete">Sei sicuro di voler eliminare il libro?\nQuesta operazione non può essere annullata</string>
     <string name="default_city_turin">Torino</string>
-    <string name="show_profile">Mostra il profilo</string>
+    <string name="bookinfo_showprofile">Mostra il profilo</string>
     <string name="action_search">Cerca</string>
     <string name="action_filter">Filtra</string>
     <string name="search_by_algolia_logo">Logo ricerca fornita da Algolia</string>
@@ -191,4 +189,8 @@
     <string name="leave_feedback">Lascia una valutazione</string>
     <string name="return_book">Restituisci libro</string>
     <string name="no_comment">Nessun commento specificato.</string>
+    <string name="ok">OK</string>
+    <string name="no">No</string>
+    <string name="bookinfo_deletebook">cancella libro</string>
+    <string name="show_ratings">Mostra feedback</string>
 </resources>

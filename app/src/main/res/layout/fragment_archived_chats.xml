@@ -26,6 +26,6 @@
         android:gravity="center"
         android:text="@string/no_archived_chats"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
 </FrameLayout>

@@ -1,15 +1,15 @@
 <resources>
-    <string name="app_name">NoFAndroid</string>
-    <string name="activity_main">NoFAndroid</string>
-    <string name="my_profile">My profile</string>
-    <string name="user_profile">%1$s\'s profile</string>
-    <string name="edit_profile">Edit your profile</string>
-    <string name="save_profile">Save your profile</string>
-    <string name="add_book">Add book</string>
-    <string name="book_details">Book details</string>
+    <string name="app_name" translatable="false">NoFAndroid</string>
+    <string name="main_title" translatable="false">NoFAndroid</string>
+    <string name="showprofile_myprofiletitle">My profile</string>
+    <string name="showprofile_userprofiletitle">%1$s\'s profile</string>
+    <string name="editprofile_title">Edit your profile</string>
+    <string name="editprofile_save">Save your profile</string>
+    <string name="addbook_title">Add book</string>
+    <string name="bookinfo_title">Book details</string>
 
-    <string name="profile_picture">Profile picture</string>
-    <string name="write_to_owner">Write to the owner</string>
+    <string name="showprofile_profilepicture">Profile picture</string>
+    <string name="bookinfo_writetoowner">Write to the owner</string>
     <string name="show_location">Show location</string>
     <string name="owned_books">Owned books</string>
     <string name="show_owned_book">Show owned books</string>
@@ -80,7 +80,7 @@
     <string name="add_book_invalid_isbn">invalid ISBN</string>
 
 
-    <string name="ok" translatable="false">OK</string>
+    <string name="ok">OK</string>
     <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
     <string name="no_camera_permission">This application cannot run because it does not have the camera permission. The application will now exit.</string>
     <string name="low_storage_error">Face detector dependencies cannot be downloaded due to low device storage</string>
@@ -108,7 +108,6 @@
     <string name="add_book_condition_good">Good</string>
     <string name="add_book_condition_fair">Fair</string>
     <string name="add_book_condition_poor">Poor</string>
-    <string name="title_activity_tag_editor">TagEditorActivity</string>
     <string name="ab_field_must_not_be_empty">Fields title and author must not be empty</string>
     <string name="autocomplete">Autocomplete</string>
     <string name="hint_tags">Tags</string>
@@ -119,7 +118,6 @@
     <string name="take_picture_gallery">Yes, take from gallery</string>
     <string name="no">No</string>
     <string name="operation_aborted">Operation aborted</string>
-    <string name="title_activity_maps">Map</string>
     <string name="fbs_show_more">More…</string>
     <string name="fbs_show_in_map">Show in map</string>
 
@@ -139,7 +137,7 @@
     <string name="error_occurred">An error occurred</string>
     <string name="confirm_delete">Are you sure you want to delete the book?\nThis operation cannot be undone</string>
     <string name="default_city_turin">Turin</string>
-    <string name="show_profile">Show profile</string>
+    <string name="bookinfo_showprofile">Show profile</string>
     <string name="action_search">Search</string>
     <string name="action_filter">Filter</string>
     <string name="search_by_algolia_logo">Logo Search by Algolia</string>
@@ -165,10 +163,10 @@
     <string name="no_archived_chats">No archived chats yet</string>
     <string name="no_messages">No messages</string>
     <string name="loading">Loading…</string>
-    <string name="delete_book">delete book</string>
+    <string name="bookinfo_deletebook">delete book</string>
 
-    <string name="notifications_admin_channel_name">Global channel</string>
-    <string name="notifications_admin_channel_description">Notifications sent from the app admin</string>
+    <string name="notifications_admin_channel_name" translatable="false">Global channel</string>
+    <string name="notifications_admin_channel_description" translatable="false">Notifications sent from the app admin</string>
     <string name="send_message">Send message</string>
     <string name="message">Message</string>
     <string name="archive_conversation">Archive the conversation?</string>

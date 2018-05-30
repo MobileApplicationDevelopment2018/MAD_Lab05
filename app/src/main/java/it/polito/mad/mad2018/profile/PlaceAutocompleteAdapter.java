@@ -33,29 +33,26 @@ import java.util.concurrent.TimeoutException;
  * {@link AutocompletePrediction} results from the API are frozen and stored directly in this
  * adapter. (See {@link AutocompletePrediction#freeze()}.)
  */
-public class PlaceAutocompleteAdapter
+class PlaceAutocompleteAdapter
         extends ArrayAdapter<AutocompletePrediction> implements Filterable {
 
     private static final CharacterStyle STYLE_BOLD = new StyleSpan(Typeface.BOLD);
     /**
+     * Handles autocomplete requests.
+     */
+    private final GeoDataClient mGeoDataClient;
+    /**
+     * The autocomplete filter used to restrict queries to a specific set of place types.
+     */
+    private final AutocompleteFilter mPlaceFilter;
+    /**
      * Current results returned by this adapter.
      */
     private ArrayList<AutocompletePrediction> mResultList;
-
-    /**
-     * Handles autocomplete requests.
-     */
-    private GeoDataClient mGeoDataClient;
-
     /**
      * The bounds used for Places Geo Data autocomplete API requests.
      */
     private LatLngBounds mBounds;
-
-    /**
-     * The autocomplete filter used to restrict queries to a specific set of place types.
-     */
-    private AutocompleteFilter mPlaceFilter;
 
     /**
      * Initializes with a resource for text rows and autocomplete query bounds.
@@ -106,6 +103,7 @@ public class PlaceAutocompleteAdapter
 
         TextView textView1 = row.findViewById(android.R.id.text1);
         TextView textView2 = row.findViewById(android.R.id.text2);
+        assert item != null;
         textView1.setText(item.getPrimaryText(STYLE_BOLD));
         textView2.setText(item.getSecondaryText(STYLE_BOLD));
 

@@ -372,7 +372,7 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
 
         String message = getString(R.string.sign_in_welcome) + " " + LocalUserProfile.getInstance().getUsername();
         Snackbar.make(findViewById(R.id.main_coordinator_layout), message, Snackbar.LENGTH_LONG)
-                .setAction(R.string.edit_profile, v -> showEditProfileActivity(RC_EDIT_PROFILE_WELCOME))
+                .setAction(R.string.editprofile_title, v -> showEditProfileActivity(RC_EDIT_PROFILE_WELCOME))
                 .show();
 
         updateNavigationView();

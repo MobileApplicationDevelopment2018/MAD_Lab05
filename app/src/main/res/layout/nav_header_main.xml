@@ -24,9 +24,9 @@
         android:id="@+id/nh_username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:freezesText="true"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:freezesText="true" />
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
         android:id="@+id/nh_email"

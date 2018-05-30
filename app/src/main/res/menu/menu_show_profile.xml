@@ -8,7 +8,7 @@
         android:id="@+id/sp_edit_profile"
         android:icon="@drawable/ic_create_white_24dp"
         android:orderInCategory="300"
-        android:title="@string/edit_profile"
+        android:title="@string/editprofile_title"
         app:showAsAction="ifRoom" />
 
 </menu>

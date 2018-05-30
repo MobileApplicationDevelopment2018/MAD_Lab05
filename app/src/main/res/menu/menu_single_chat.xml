@@ -5,7 +5,7 @@
         android:id="@+id/sc_show_peer_profile"
         android:icon="@drawable/ic_person_white_24dp"
         android:orderInCategory="300"
-        android:title="@string/show_profile"
+        android:title="@string/bookinfo_showprofile"
         app:showAsAction="ifRoom" />
 
     <item

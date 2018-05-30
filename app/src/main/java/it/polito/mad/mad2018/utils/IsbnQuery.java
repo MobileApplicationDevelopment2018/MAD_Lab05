@@ -80,14 +80,16 @@ public class IsbnQuery extends AsyncTask<String, Object, Volumes> {
 
         super.onCancelled();
         TaskListener listener = this.listener.get();
-        if(listener != null) {
+        if (listener != null) {
             listener.onTaskCancelled(context.get().getResources().getString(R.string.error_no_internet));
         }
     }
 
     public interface TaskListener {
         void onTaskStarted();
+
         void onTaskFinished(Volumes result);
+
         void onTaskCancelled(String msg);
     }
 }

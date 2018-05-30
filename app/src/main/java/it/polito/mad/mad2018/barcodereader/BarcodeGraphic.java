@@ -30,9 +30,8 @@ import it.polito.mad.mad2018.barcodereader.ui.camera.GraphicOverlay;
  */
 public class BarcodeGraphic extends GraphicOverlay.Graphic {
 
+    private final Paint mRectPaint;
     private int mId;
-
-    private Paint mRectPaint;
     private volatile Barcode mBarcode;
 
     BarcodeGraphic(GraphicOverlay overlay) {

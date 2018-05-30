@@ -24,11 +24,12 @@ import it.polito.mad.mad2018.data.Conversation;
 
 public class ChatService extends FirebaseMessagingService {
 
-    private static final String ADMIN_CHANNEL_ID ="admin_channel";
+    private static final String ADMIN_CHANNEL_ID = "admin_channel";
     //private final static String GROUP_BOOKS_CHAT = "it.polito.mad.mad2018.chat.BOOKS_CHAT";
     private NotificationManager notificationManager;
 
-    @Override public void onMessageReceived(RemoteMessage remoteMessage) {
+    @Override
+    public void onMessageReceived(RemoteMessage remoteMessage) {
 
         Intent resultIntent = new Intent(this, SingleChatActivity.class);
         String conversationId = remoteMessage.getData().get("conversationId");
@@ -74,7 +75,7 @@ public class ChatService extends FirebaseMessagingService {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void setupChannels(){
+    private void setupChannels() {
         CharSequence adminChannelName = getString(R.string.notifications_admin_channel_name);
         String adminChannelDescription = getString(R.string.notifications_admin_channel_description);
 

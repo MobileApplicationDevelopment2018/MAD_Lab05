@@ -29,10 +29,10 @@ import it.polito.mad.mad2018.barcodereader.ui.camera.GraphicOverlay;
  * to an overlay, update the graphics as the item changes, and remove the graphics when the item
  * goes away.
  */
-public class BarcodeGraphicTracker extends Tracker<Barcode> {
+class BarcodeGraphicTracker extends Tracker<Barcode> {
     private final BarcodeUpdateListener mBarcodeUpdateListener;
-    private GraphicOverlay<BarcodeGraphic> mOverlay;
-    private BarcodeGraphic mGraphic;
+    private final GraphicOverlay<BarcodeGraphic> mOverlay;
+    private final BarcodeGraphic mGraphic;
 
     BarcodeGraphicTracker(GraphicOverlay<BarcodeGraphic> mOverlay, BarcodeGraphic mGraphic,
                           Context context) {

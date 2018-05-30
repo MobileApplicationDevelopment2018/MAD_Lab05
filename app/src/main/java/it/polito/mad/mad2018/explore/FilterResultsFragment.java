@@ -8,6 +8,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+
 import java.util.ArrayList;
 
 import it.polito.mad.mad2018.R;
@@ -16,7 +17,7 @@ public class FilterResultsFragment extends DialogFragment {
 
     public static final String TAG = "FilterResultsFragment";
 
-    static final String FILTERS_KEY = "filters";
+    private static final String FILTERS_KEY = "filters";
 
     private ArrayList<ExploreFragment.Filter> filters;
 
@@ -32,6 +33,7 @@ public class FilterResultsFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         super.onCreateDialog(savedInstanceState);
+        assert getArguments() != null;
         filters = getArguments().getParcelableArrayList(FILTERS_KEY);
 
         final FragmentActivity activity = getActivity();
@@ -58,7 +60,8 @@ public class FilterResultsFragment extends DialogFragment {
                         filter.applyFilter();
                     }
 
-                    ((OnDismissListener)getParentFragment()).onDialogDismiss();
+                    assert getParentFragment() != null;
+                    ((OnDismissListener) getParentFragment()).onDialogDismiss();
                     dialog.dismiss();
                 })
                 .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
@@ -69,7 +72,7 @@ public class FilterResultsFragment extends DialogFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        for(ExploreFragment.Filter filter : filters) {
+        for (ExploreFragment.Filter filter : filters) {
             outState.putInt(filter.name, filter.getFilterLayoutValue());
         }
     }

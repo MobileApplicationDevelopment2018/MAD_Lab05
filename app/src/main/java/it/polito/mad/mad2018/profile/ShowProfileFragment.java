@@ -70,8 +70,8 @@ public class ShowProfileFragment extends Fragment {
         assert profile != null;
 
         getActivity().setTitle(profile instanceof LocalUserProfile
-                ? getString(R.string.my_profile)
-                : getString(R.string.user_profile, profile.getUsername()));
+                ? getString(R.string.showprofile_myprofiletitle)
+                : getString(R.string.showprofile_userprofiletitle, profile.getUsername()));
 
         // Fill the views with the data
         fillViews(profile);

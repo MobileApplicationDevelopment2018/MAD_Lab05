@@ -79,7 +79,7 @@ public class BookInfoFragment extends FragmentDialog<BookInfoFragment.DialogID>
 
         setHasOptionsMenu(true);
         assert getActivity() != null;
-        getActivity().setTitle(R.string.book_details);
+        getActivity().setTitle(R.string.bookinfo_title);
 
         assert getArguments() != null;
         book = (Book) getArguments().getSerializable(Book.BOOK_KEY);

@@ -25,10 +25,9 @@ import it.polito.mad.mad2018.data.Book;
 
 public class MapWidget implements AlgoliaResultsListener {
 
-    private GoogleMap googleMap;
-
     @NonNull
     private final List<JSONObject> hits;
+    private GoogleMap googleMap;
 
     public MapWidget(@NonNull final SupportMapFragment mapFragment,
                      @NonNull OnBookSelectedListener onBookSelectedListener) {

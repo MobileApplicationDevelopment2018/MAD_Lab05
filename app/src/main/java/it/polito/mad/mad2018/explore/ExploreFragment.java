@@ -55,20 +55,15 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
     private static final String DISTANCE_FILTER_NAME = "distance";
     private static final String AVAILABILITY_FILTER_NAME = "availability";
     private static final String FILTERS_KEY = "filters";
-
+    private final static String SEARCH_QUERY_KEY = "searchQuery";
     private ArrayList<Filter> filters;
-
     private Searcher searcher;
     private FilterResultsFragment filterResultsFragment;
-
     private ViewPager pager;
-
     private AppBarLayout appBarLayout;
     private View algoliaLogoLayout;
     private GoogleApiClient mGoogleApiClient;
-
     private String searchQuery;
-    private final static String SEARCH_QUERY_KEY = "searchQuery";
     private InstantSearch helper;
 
     public static ExploreFragment newInstance() {
@@ -312,24 +307,6 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         helper.search(searcher.getQuery().getQuery());
     }
 
-    private class SearchResultsPagerAdapter extends FragmentStatePagerAdapter {
-        SearchResultsPagerAdapter(FragmentManager fragmentManager) {
-            super(fragmentManager);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return (position == 0
-                    ? SearchResultsTextFragment.newInstance()
-                    : SupportMapFragment.newInstance());
-        }
-
-        @Override
-        public int getCount() {
-            return 2;
-        }
-    }
-
     private void checkHasSearcher() {
         if (searcher == null) {
             throw new IllegalStateException("No searcher found");
@@ -353,11 +330,29 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
         filters.add(availabilityFilter);
     }
 
+    private class SearchResultsPagerAdapter extends FragmentStatePagerAdapter {
+        SearchResultsPagerAdapter(FragmentManager fragmentManager) {
+            super(fragmentManager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return (position == 0
+                    ? SearchResultsTextFragment.newInstance()
+                    : SupportMapFragment.newInstance());
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+    }
+
     abstract class Filter implements Serializable, Parcelable {
 
-        String attribute;
-        String name;
-        int position;
+        final String attribute;
+        final String name;
+        final int position;
         int value;
         View filterLayout;
         Context context;
@@ -410,9 +405,9 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
     }
 
     abstract class SeekBarFilter extends Filter {
-        int min;
-        int max;
-        int steps;
+        final int min;
+        final int max;
+        final int steps;
         int seekBarValue;
 
         SeekBarFilter(String attribute, String name, int min, int max, int steps, int position, Searcher searcher, Context context) {
@@ -502,14 +497,6 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
 
     class ConditionsFilter extends SeekBarFilter {
 
-        ConditionsFilter(String name, int min, int max, int steps, int position, Searcher searcher, Context context) {
-            super(Book.ALGOLIA_CONDITIONS_KEY, name, min, max, steps, position, searcher, context);
-        }
-
-        ConditionsFilter(Parcel in) {
-            super(in);
-        }
-
         public final Parcelable.Creator<ConditionsFilter> CREATOR = new Parcelable.Creator<ConditionsFilter>() {
 
             @Override
@@ -522,6 +509,14 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
                 return new ConditionsFilter[size];
             }
         };
+
+        ConditionsFilter(String name, int min, int max, int steps, int position, Searcher searcher, Context context) {
+            super(Book.ALGOLIA_CONDITIONS_KEY, name, min, max, steps, position, searcher, context);
+        }
+
+        ConditionsFilter(Parcel in) {
+            super(in);
+        }
 
         @Override
         void applyFilter() {
@@ -545,14 +540,6 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
 
     class DistanceFilter extends SeekBarFilter {
 
-        DistanceFilter(String name, int min, int max, int steps, int position, Searcher searcher, Context context) {
-            super(null, name, min, max, steps, position, searcher, context);
-        }
-
-        DistanceFilter(Parcel in) {
-            super(in);
-        }
-
         public final Parcelable.Creator<DistanceFilter> CREATOR = new Parcelable.Creator<DistanceFilter>() {
 
             @Override
@@ -565,6 +552,14 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
                 return new DistanceFilter[size];
             }
         };
+
+        DistanceFilter(String name, int min, int max, int steps, int position, Searcher searcher, Context context) {
+            super(null, name, min, max, steps, position, searcher, context);
+        }
+
+        DistanceFilter(Parcel in) {
+            super(in);
+        }
 
         @Override
         void applyFilter() {
@@ -592,8 +587,20 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
     }
 
     class CheckBoxFilter extends Filter {
-        boolean checkedIsTrue;
-        String text;
+        public final Parcelable.Creator<CheckBoxFilter> CREATOR = new Parcelable.Creator<CheckBoxFilter>() {
+
+            @Override
+            public CheckBoxFilter createFromParcel(Parcel in) {
+                return new CheckBoxFilter(in);
+            }
+
+            @Override
+            public CheckBoxFilter[] newArray(int size) {
+                return new CheckBoxFilter[size];
+            }
+        };
+        final boolean checkedIsTrue;
+        final String text;
         boolean value;
 
         CheckBoxFilter(String name, boolean checkedIsTrue, String text, int position, Searcher searcher, Context context) {
@@ -616,20 +623,6 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
             out.writeString(text);
             out.writeByte((byte) (value ? 1 : 0));
         }
-
-        public final Parcelable.Creator<CheckBoxFilter> CREATOR = new Parcelable.Creator<CheckBoxFilter>() {
-
-            @Override
-            public CheckBoxFilter createFromParcel(Parcel in) {
-                return new CheckBoxFilter(in);
-            }
-
-            @Override
-            public CheckBoxFilter[] newArray(int size) {
-                return new CheckBoxFilter[size];
-            }
-        };
-
 
         @Override
         void updateValue() {

@@ -29,7 +29,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="4"
-            android:contentDescription="@string/profile_picture"
+            android:contentDescription="@string/showprofile_profilepicture"
             android:scaleType="centerCrop" />
 
         <android.support.v4.widget.NestedScrollView

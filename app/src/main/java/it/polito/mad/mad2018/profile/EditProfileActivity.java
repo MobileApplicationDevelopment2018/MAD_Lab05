@@ -526,6 +526,7 @@ public class EditProfileActivity extends AppCompatActivityDialog<EditProfileActi
     private void initAutoCompleteListener() {
         autocompleteClickListener = (parent, view, position, id) -> {
             final AutocompletePrediction item = placeAutocompleteAdapter.getItem(position);
+            assert item != null;
             final String placeId = item.getPlaceId();
             location.setText(item.getPrimaryText(null));
             Task<PlaceBufferResponse> placeResult = geoDataClient.getPlaceById(placeId);

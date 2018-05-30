@@ -20,7 +20,7 @@
                 android:id="@+id/ep_profile_picture"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
-                android:contentDescription="@string/profile_picture"
+                android:contentDescription="@string/showprofile_profilepicture"
                 android:scaleType="centerCrop" />
 
             <LinearLayout
