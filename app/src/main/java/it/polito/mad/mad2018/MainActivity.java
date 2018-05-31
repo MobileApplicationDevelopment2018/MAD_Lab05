@@ -309,7 +309,7 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
 
     private void onSignOut() {
         LocalUserProfile.setInstance(null);
-        removeCurrentFragment();
+        removeAllFragments();
         ChatIDService.deleteToken();
         signIn();
     }
@@ -413,17 +413,21 @@ public class MainActivity extends AppCompatActivityDialog<MainActivity.DialogID>
         hideSoftKeyboard();
     }
 
-    private void removeCurrentFragment() {
+    private void removeAllFragments() {
+
+        Class[] tags = {ExploreFragment.class, LibraryFragment.class,
+                MyChatsFragment.class, ShowProfileFragment.class};
 
         findViewById(R.id.main_loading).setVisibility(View.VISIBLE);
-        Fragment instance = getCurrentFragment();
 
-        if (instance != null) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .remove(instance)
-                    .commit();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        for (Class tag : tags) {
+            Fragment instance = getSupportFragmentManager().findFragmentByTag(tag.getSimpleName());
+            if (instance != null) {
+                transaction.remove(instance);
+            }
         }
+        transaction.commit();
     }
 
     private void showDefaultFragment() {
