@@ -446,6 +446,7 @@ public class AddBookFragment extends FragmentDialog<AddBookFragment.DialogID>
                 android.R.layout.simple_spinner_item, years);
 
         spinYear.setAdapter(adapter);
+        spinYear.setSelection(adapter.getCount() - 1);
     }
 
     private void fillSpinnerConditions(Spinner spinConditions) {

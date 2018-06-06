@@ -2,6 +2,8 @@ package it.polito.mad.mad2018.chat;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -171,6 +173,12 @@ public class SingleChatFragment extends FragmentDialog<SingleChatFragment.Dialog
                 linearLayoutManager.scrollToPosition(count - 1 - conversation.getUnreadMessagesCount());
             }
             conversation.setMessagesAllRead();
+
+            assert getActivity() != null;
+            NotificationManager notificationManager = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+            if (notificationManager != null) {
+                notificationManager.cancel(conversation.getConversationId().hashCode());
+            }
         });
         recyclerViewMessages.setAdapter(adapter);
         adapter.startListening();

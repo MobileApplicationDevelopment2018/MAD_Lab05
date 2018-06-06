@@ -567,7 +567,7 @@ public class ExploreFragment extends Fragment implements FilterResultsFragment.O
             double[] position = LocalUserProfile.getInstance().getCoordinates();
             Query query = searcher.getQuery().setAroundLatLng(new AbstractQuery.LatLng(position[0], position[1]));
             if (value < max) {
-                query.setAroundRadius(value);
+                query.setAroundRadius(value == 0 ? 1 : value);
             } else {
                 query.setAroundRadius(Query.RADIUS_ALL);
             }

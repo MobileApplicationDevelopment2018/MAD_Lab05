@@ -202,7 +202,6 @@
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
                 android:inputType="text"
-                android:maxLength="@integer/max_length_tag"
                 android:padding="16dp"
                 app:atg_inputHint="@string/ab_add_tag"
                 app:atg_isAppendMode="true" />
