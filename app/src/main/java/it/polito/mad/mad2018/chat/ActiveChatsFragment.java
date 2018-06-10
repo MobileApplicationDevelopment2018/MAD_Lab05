@@ -112,7 +112,7 @@ public class ActiveChatsFragment extends Fragment {
                         .setMessage(R.string.archive_conversation_message)
                         .setPositiveButton(android.R.string.yes, (dialog, which) -> {
                             conversation.archiveConversation();
-                            adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+                            adapter.notifyDataSetChanged();
                         })
                         .setNegativeButton(android.R.string.no, (dialog, which) ->
                                 adapter.notifyItemChanged(viewHolder.getAdapterPosition())
