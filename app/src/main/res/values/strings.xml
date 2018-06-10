@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name" translatable="false">NoFAndroid</string>
-    <string name="main_title" translatable="false">NoFAndroid</string>
+    <string name="app_name" translatable="false">Take a Book</string>
+    <string name="main_title" translatable="false">Take a Book</string>
     <string name="showprofile_myprofiletitle">My profile</string>
     <string name="showprofile_userprofiletitle">%1$s\'s profile</string>
     <string name="editprofile_title">Edit your profile</string>
@@ -176,7 +176,7 @@
     <string name="conversation_archived">Archived conversation</string>
     <string name="conversation_archived_message">The conversation has been archived by the peer user.</string>
     <string name="on_boarding">NoFAndroid</string>
-    <string name="splash_intro_text">Welcome to NoFAndroid! Search or share your books here!</string>
+    <string name="splash_intro_text">Welcome to Take a Book! Search or share your books here!</string>
     <string name="delete_conversation">Delete the conversation?</string>
     <string name="delete_conversation_message">If you confirm, this conversation will be deleted from your archive forever.</string>
     <string name="message_request_borrowing">I would like to borrow your book titled \'%1$s\'.</string>

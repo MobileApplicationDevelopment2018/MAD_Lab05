@@ -156,7 +156,7 @@
     <string name="archive_conversation_message_not_possible">Al momento non è possibile archiviare la conversazione, in quanto il prestito non è ancora stato completato.</string>
     <string name="conversation_archived">Conversazione archiviata</string>
     <string name="conversation_archived_message">La conversazione è stata archiviata dall\'altro utente.</string>
-    <string name="splash_intro_text">Benvenuto in NoFAndroid! Cerca o condividi qui i tuoi libri!</string>
+    <string name="splash_intro_text">Benvenuto in Take a Book! Cerca o condividi qui i tuoi libri!</string>
     <string name="delete_conversation">Cancellare la conversazione?</string>
     <string name="delete_conversation_message">Se confermi, questa conversazione non sarà più visibile in futuro nel tuo archivio.</string>
     <string name="message_request_borrowing">Mi piacerebbe prendere in prestito il tuo libro intitolato \'%1$s\'.</string>
